@@ -1059,6 +1059,7 @@ char *_input, *_output;
 
 void _settings();
 void _solve();
+void _test();
 
 int main() {
     _settings();
@@ -1074,7 +1075,11 @@ int main() {
     re 0;
 }
 
+// #define TEST
 void _settings() {
+    #ifdef TEST
+    _test();
+    #endif
     _fastio = 1;
     _multitest = 0;
     #ifdef LOCAL
@@ -1088,9 +1093,8 @@ void _settings() {
     _output = output;
 }
 
-// #define TEST
 #ifdef TEST
-auto slow(/*input*/);2
+auto slow(/*input*/);
 auto fast(/*input*/);
 void out(auto&);
 
@@ -1099,16 +1103,16 @@ bl check(auto& ans1, auto& ans2/*, input*/) {
     re ans1 == ans2;
 }
 
-void test() {
+void _test() {
     const uint64_t SECONDS = 5;
     auto _start = now();
-    int _test;
-    for (_test = 0; now() - _start < 1000000000*SECONDS; ++_test) {
+    int _count;
+    for (_count = 0; now() - _start < 1000000000*SECONDS; ++_count) {
         /* generate input */
         auto ans1 = slow(/*input*/);
         auto ans2 = fast(/*input*/);
         if (check(ans1, ans2/*, input*/)) continue;
-        cout << "Wrong answer on test " << _test+1 << '\n';
+        cout << "Wrong answer on test " << _count+1 << '\n';
         cout << "\n============ INPUT ============\n";
         /* print input */
         cout << "\n======== CORRECT ANSWER ========\n";
@@ -1117,7 +1121,7 @@ void test() {
         out(ans2);
         exit(1);
     }
-    cout << _test << " tests passed\n";
+    cout << _count << " tests passed\n";
     exit(0);
 }
 #endif
@@ -1137,10 +1141,6 @@ auto fast(/*input*/) {
 }
 
 void _solve() {
-    #ifdef TEST
-    test();
-    #endif
-
     /* get input */
     auto ans = fast(/*input*/);
     out(ans);
