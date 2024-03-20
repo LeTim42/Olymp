@@ -17,6 +17,9 @@
 #include <climits>
 #include <ctime>
 #include <random>
+#ifdef LOCAL
+#include <windows.h>
+#endif
 
 #define P pair
 #define V vector
@@ -100,7 +103,7 @@ template<class T = int> T fmax(T a, T b) { re max(a,b); }
 const int iINF = 2000000007;
 const ll INF = 2000000000000000007;
 
-//return current in nanoseconds (for accurate measurement of working time)
+//returns current in nanoseconds (for accurate measurement of working time)
 uint64_t now() {
     using namespace chrono;
     return duration_cast<nanoseconds>(steady_clock::now().time_since_epoch()).count();
@@ -399,6 +402,20 @@ namespace rnd {
         p.se += fi_not_se && p.se >= p.fi;
         if (fi_less_se && p.fi > p.se) swap(p.fi, p.se);
         re p;
+    }
+
+    str s(int n, ch l = 'a', ch r = 'z') { //[l; r]
+        uid<ch> range(l,r);
+        str s(n,0);
+        for (ch& c : s) c = range(engine);
+        re s;
+    }
+
+    str s(int n, str chars) {
+        uid<int> range(0,sz(chars)-1);
+        str s(n,0);
+        for (ch& c : s) c = chars[range(engine)];
+        re s;
     }
 
     template<class T = int>
@@ -1062,6 +1079,9 @@ void _solve();
 void _test();
 
 int main() {
+    #ifdef LOCAL
+    auto start = now();
+    #endif
     _settings();
     if (_fastio) {
         ios::sync_with_stdio(0);
@@ -1072,6 +1092,10 @@ int main() {
     int t = 1;
     if (_multitest) cin >> t;
     while (t--) _solve();
+    #ifdef LOCAL
+    auto finish = now();
+    cout << "\nWorking time: " << round((finish - start) / 1e6) << "ms";
+    #endif
     re 0;
 }
 
@@ -1098,6 +1122,15 @@ auto slow(/*input*/);
 auto fast(/*input*/);
 void out(auto&);
 
+void copy(str s) {
+    auto glob = GlobalAlloc(GMEM_FIXED, sz(s)+1);
+    memcpy(glob, s.c_str(), sz(s)+1);
+    OpenClipboard(GetDesktopWindow());
+    EmptyClipboard();
+    SetClipboardData(CF_TEXT,glob);
+    CloseClipboard();
+}
+
 bl check(auto& ans1, auto& ans2/*, input*/) {
     /* check if ans2 is a correct answer if one of the correct answers is ans1 */
     re ans1 == ans2;
@@ -1113,8 +1146,12 @@ void _test() {
         auto ans2 = fast(/*input*/);
         if (check(ans1, ans2/*, input*/)) continue;
         cout << "Wrong answer on test " << _count+1 << '\n';
-        cout << "\n============ INPUT ============\n";
-        /* print input */
+        cout << "\n============ INPUT =============\n";
+        stringstream ss;
+        /* print input to stringstream */
+        str str = ss.str();
+        copy(str);
+        cout << str;
         cout << "\n======== CORRECT ANSWER ========\n";
         out(ans1);
         cout << "\n========= WRONG ANSWER =========\n";
