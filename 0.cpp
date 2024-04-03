@@ -96,6 +96,27 @@ template<class T> ostream& operator<<(ostream& out, V<T>& a) { for (T& x : a) ou
 template<class T> void print(T& a, char sep = '\n') { for (auto& x : a) cout << x << sep; }
 template<class T> void print1(T& a, char sep = '\n') { for (auto& x : a) cout << x+1 << sep; }
 
+#ifdef LOCAL
+str _tab = "";
+struct TAB_HELPER {
+    TAB_HELPER() { _tab += "  "; }
+    ~TAB_HELPER() { _tab = _tab.substr(0,sz(_tab)-2); }
+};
+#define PARENS ()
+#define EXPAND(...) EXPAND4(EXPAND4(EXPAND4(EXPAND4(__VA_ARGS__))))
+#define EXPAND4(...) EXPAND3(EXPAND3(EXPAND3(EXPAND3(__VA_ARGS__))))
+#define EXPAND3(...) EXPAND2(EXPAND2(EXPAND2(EXPAND2(__VA_ARGS__))))
+#define EXPAND2(...) EXPAND1(EXPAND1(EXPAND1(EXPAND1(__VA_ARGS__))))
+#define EXPAND1(...) __VA_ARGS__
+#define DIN TAB_HELPER _tab_helper;
+#define DEB(...) cout << _tab; __VA_OPT__(EXPAND(DEB_HELPER(__VA_ARGS__))) cout << endl;
+#define DEB_HELPER(var, ...) cout << ">> " << #var << " = " << var << " "; __VA_OPT__(DEB_HELPER_2 PARENS (__VA_ARGS__))
+#define DEB_HELPER_2() DEB_HELPER
+#else
+#define DEB(...) ;
+#define DIN ;
+#endif
+
 template<class T = int> T fadd(T a, T b) { re a+b; }
 template<class T = int> T fmin(T a, T b) { re min(a,b); }
 template<class T = int> T fmax(T a, T b) { re max(a,b); }
@@ -106,7 +127,7 @@ const ll INF = 2000000000000000007;
 //returns current in nanoseconds (for accurate measurement of working time)
 uint64_t now() {
     using namespace chrono;
-    return duration_cast<nanoseconds>(steady_clock::now().time_since_epoch()).count();
+    re duration_cast<nanoseconds>(steady_clock::now().time_since_epoch()).count();
 }
 
 //returns vector of pairs {a[i], i}
@@ -1094,7 +1115,7 @@ int main() {
     while (t--) _solve();
     #ifdef LOCAL
     auto finish = now();
-    cout << "\nWorking time: " << round((finish - start) / 1e6) << "ms";
+    cout << "\nWorking time: " << (int)round((finish - start) / 1e6) << "ms";
     #endif
     re 0;
 }

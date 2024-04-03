@@ -40,6 +40,7 @@ struct func {
 };
 
 struct space {
+    char type;
     std::string name;
     size_t start, end;
     std::vector<std::string> words;
@@ -157,7 +158,7 @@ private:
 
     space get_space(char type = 0) {
         i += type == 1;
-        space s{tokens[i+1].value, start};
+        space s{type, tokens[i+1].value, start};
         start = SIZE_MAX;
         words_buffer.clear();
         vars_buffer.clear();
@@ -187,11 +188,20 @@ private:
                     if (tokens[i+1].line == tokens[i].line) {
                         if (tokens[i+1].value == "define") {
                             ++i;
+                            size_t tmp = i;
                             def d = get_def();
-                            if (d.words.empty()) used.insert(d.name);
+                            if (i == tmp+1) used.insert(d.name);
                             s.defines.emplace_back(d);
                         } else if (tokens[i+1].value == "ifdef")
                             s.spaces.emplace_back(get_space(1));
+                        else if (tokens[i+1].value == "else") {
+                            if (type == 1) break;
+                            --i;
+                            space ss = get_space(1);
+                            ss.name = "/" + s.spaces.back().name;
+                            ++s.spaces.back().end;
+                            s.spaces.emplace_back(ss);
+                        }
                         else if (type != 1 || tokens[i+1].value != "endif")
                             skip();
                     }
@@ -396,10 +406,14 @@ private:
     }
 
     void add_unused_space(space& s) {
-        if (used.find(s.name) == used.end())
+        if (used.find(s.name) == used.end() && (s.name[0] != '/' || used.find(s.name.substr(1)) != used.end()))
             for (size_t i = s.start; i <= s.end; ++i)
                 unused.emplace_back(i);
         else {
+            if (s.type == 1) {
+                unused.emplace_back(s.start);
+                unused.emplace_back(s.end);
+            }
             add_unused_defs(s.defines);
             add_unused_defs(s.typedefs);
             add_unused_defs(s.usings);
