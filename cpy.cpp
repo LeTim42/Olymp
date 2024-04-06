@@ -36,6 +36,7 @@ int main(int argc, char* argv[]) {
     char e = argv[2][0] + 1;
     copy("0.cpp", dir + "0.cpp");
     copy("input.txt", dir + "input.txt");
+    copy("run.bat", dir + "run.bat");
     for (char c = 'A'; c < e; ++c)
         copy("0.cpp", dir + c + ".cpp");
     std::cout << std::max(e-'A',0) << " files created" << std::endl;

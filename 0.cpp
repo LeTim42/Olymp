@@ -46,11 +46,17 @@
 #define erase1(a,x) a.erase(a.find(x))
 #define inp(n,a) int n; cin >> n; vi a(n); cin >> a
 #define inp2(n,m,a) int n, m; cin >> n >> m; vvi a(n,vi(m)); cin >> a
+#define prec(n) fixed << setprecision(n)
 #define bcount(a) __builtin_popcount(a)
 #define bcountll(a) __builtin_popcountll(a)
+#define bit(a,i) (((a)>>(i))&1)
+#define lbit(a) (__lg((a)))
+#define rbit(a) (lbit((a)&-(a)))
 #define uid uniform_int_distribution
+#define urd uniform_real_distribution
 #define f0r(i,n) for (int i = 0; i < (n); ++i)
 #define f0rr(i,n) for (int i = (n)-1; i >= 0; --i)
+#define f0rbit(a,i,n) f0r(i,(n)) if (bit((a),i))
 #define rep(i,s,n) for (int i = (s); i < (n); ++i)
 #define repr(i,s,n) for (int i = (n)-1; i >= (s); --i)
 #define ever for(;;)
@@ -93,8 +99,9 @@ template<class T1, class T2> ostream& operator<<(ostream& out, P<T1,T2>& a) { re
 template<class T1, class T2> istream& operator>>(istream& in, P<T1,T2>& a) { re in >> a.fi >> a.se; }
 template<class T> istream& operator>>(istream& in, V<T>& a) { for (T& x : a) in >> x; re in; }
 template<class T> ostream& operator<<(ostream& out, V<T>& a) { for (T& x : a) out << x << ' '; re out; }
-template<class T> void print(T& a, char sep = '\n') { for (auto& x : a) cout << x << sep; }
-template<class T> void print1(T& a, char sep = '\n') { for (auto& x : a) cout << x+1 << sep; }
+ostream& operator<<(ostream& out, vb& a) { for (bl x : a) out << x << ' '; re out; }
+template<class T> void print(T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x << sep; }
+template<class T> void print1(T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x+1 << sep; }
 
 #ifdef LOCAL
 str _tab = "";
@@ -124,13 +131,13 @@ template<class T = int> T fmax(T a, T b) { re max(a,b); }
 const int iINF = 2000000007;
 const ll INF = 2000000000000000007;
 
-//returns current in nanoseconds (for accurate measurement of working time)
+// returns current time in nanoseconds
 uint64_t now() {
     using namespace chrono;
     re duration_cast<nanoseconds>(steady_clock::now().time_since_epoch()).count();
 }
 
-//returns vector of pairs {a[i], i}
+// returns vector of pairs {a[i], i}
 template<class T>
 V<P<T,int>> indv(V<T>& a) {
     V<P<T,int>> res(sz(a));
@@ -139,7 +146,7 @@ V<P<T,int>> indv(V<T>& a) {
     re res;
 }
 
-//returns first x in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
+// returns first x in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
 template<class T>
 T bin_search(T l, T r, function<bl(T)> f) {
     while (l < r) {
@@ -150,7 +157,7 @@ T bin_search(T l, T r, function<bl(T)> f) {
     re l;
 }
 
-//returns first x in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
+// returns first x in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
 template<class T>
 T exp_search(T l, T r, function<bl(T)> f) {
     T x = l, step = 1;
@@ -162,7 +169,7 @@ T exp_search(T l, T r, function<bl(T)> f) {
     re bin_search<T>(x-(step>>1),r,f);
 }
 
-//modular arithmetic
+// modular arithmetic
 namespace mod {
     const int MOD = 1000000007;
 
@@ -188,15 +195,15 @@ namespace mod {
         re x;
     }
 
-    //Requirements: a % b == 0, MOD - prime number
+    // Requirements: a % b == 0, MOD - prime number
     int idiv(int a, int b) {
         re mul(a,pow(b,MOD-2));
     }
 }
 
-//work with graphs
+// work with graphs
 namespace graph {
-    //returns graph adjacency lists from edges list
+    // returns graph adjacency lists from edges list
     vvi create(int n, vii& e, bl orient = 0, int first_index = 1) {
         vvi g(n);
         for (pii p : e) {
@@ -206,7 +213,7 @@ namespace graph {
         re g;
     }
 
-    //returns weighted graph adjacency lists from edges list with weights
+    // returns weighted graph adjacency lists from edges list with weights
     template<class T = int>
     V<V<P<int,T>>> createW(int n, V<P<pii,T>>& e, bl orient = 0, int first_index = 1) {
         V<V<P<int,T>>> g(n);
@@ -217,7 +224,7 @@ namespace graph {
         re g;
     }
 
-    //returns edges list from graph adjacency lists
+    // returns edges list from graph adjacency lists
     vii edges(vvi& g, bl orient = 0, int first_index = 1) {
         int n = sz(g);
         vii res;
@@ -234,7 +241,7 @@ namespace graph {
         re res;
     }
 
-    //returns edges list with weights from weighted graph adjacency lists
+    // returns edges list with weights from weighted graph adjacency lists
     template<class T = int>
     V<P<pii,T>> edgesW(V<V<P<int,T>>>& g, bl orient = 0, int first_index = 1) {
         int n = sz(g);
@@ -253,14 +260,14 @@ namespace graph {
         re res;
     }
 
-    //heavy-light decomposition
+    // heavy-light decomposition
     class hld {
     public:
-        //parent[u] = parent of vertex u
-        //depth[u] = depth of vertex u
-        //heavy[u] = next vertex after vertex u in heavy path
-        //head[u] = head of heavy path in which vertex u is
-        //pos[u] = index of vertex u in segment tree
+        // parent[u] = parent of vertex u
+        // depth[u] = depth of vertex u
+        // heavy[u] = next vertex after vertex u in heavy path
+        // head[u] = head of heavy path in which vertex u is
+        // pos[u] = index of vertex u in segment tree
         vi parent, depth, heavy, head, pos;
 
         hld(vvi& g) {
@@ -389,7 +396,7 @@ namespace graph {
     }
 }
 
-//generate random stuff
+// generate random stuff
 namespace rnd {
     mt19937 engine;
     
@@ -407,12 +414,17 @@ namespace rnd {
     }
 
     bl b() {
-        re uid<int>(0,1)(engine);
+        re uid(0,1)(engine);
     }
     
     template<class T = int>
     T i(T l, T r) { //[l; r]
         re uid<T>(l,r)(engine);
+    }
+    
+    template<class T = ld>
+    T d(T l, T r) { //[l; r]
+        re urd<T>(l,r)(engine);
     }
     
     template<class T = int>
@@ -535,7 +547,7 @@ namespace rnd {
         re g;
     }
     
-    //returns graph with random weights from graph g
+    // returns graph with random weights from graph g
     template<class T = int>
     V<V<P<int,T>>> w(vvi g, T l, T r, bl orient = 0) { //[l; r]
         int n = sz(g);
@@ -559,7 +571,7 @@ namespace rnd {
     }
 }
 
-//work with geometry
+// work with geometry
 namespace geom {
     lld eps = 1e-8;
     
@@ -658,7 +670,7 @@ namespace geom {
     }
 }
 
-//custom bitset
+// custom bitset
 class bits {
 private:
     size_t n, m;
@@ -789,6 +801,22 @@ public:
         return a[0];
     }
 
+    int left_bit() const {
+        int res = -1;
+        f0rr(i,m)
+            if ((res = lbit(a[i])) != -1)
+                return res+i*64;
+        return -1;
+    }
+
+    int right_bit() const {
+        int res = -1;
+        f0r(i,m)
+            if ((res = rbit(a[i])) != -1)
+                return res+i*64;
+        return -1;
+    }
+
     bits& operator=(const bits& b) {
         if (m != b.m) {
             delete[] a;
@@ -901,7 +929,7 @@ public:
     }
 };
 
-//disjoint set
+// disjoint set
 class dsu {
 private:
     vi p, h;
@@ -951,10 +979,10 @@ public:
     }
 };
 
-//Requirements:
-//for add(i,x) T = T + T must be defined
-//f(T,nil) == f(nil,T) == T
-//if T is complicated then T() must has length 1
+// Requirements:
+// for add(i,x) T = T + T must be defined
+// f(T,nil) == f(nil,T) == T
+// if T is complicated then T() must has length 1
 template<class T = int>
 class seg_tree {
 private:
@@ -1003,12 +1031,12 @@ public:
     }
 };
 
-//Requirements:
-//T = T + D must be defined
-//D = D + D must be defined
-//T + D() == T
-//f(T,nil) == f(nil,T) == T
-//if T is complicated then T() must has length 1
+// Requirements:
+// T = T + D must be defined
+// D = D + D must be defined
+// T + D() == T
+// f(T,nil) == f(nil,T) == T
+// if T is complicated then T() must has length 1
 template<class T = int, class D = int>
 class seg_tree_lp {
 private:
@@ -1043,7 +1071,7 @@ private:
 public:
     seg_tree_lp(int _n, T(*_f)(T,T) = &fmax, T _nil = T()) : n(_n), f(_f), nil(_nil) {
         t = V<T>(n<<1);
-        h = __lg(n)+1;
+        h = lbit(n)+1;
         d = V<D>(n);
     }
     
