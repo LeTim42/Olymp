@@ -581,32 +581,36 @@ namespace geom {
         R(lld _x, lld _y) : x(_x), y(_y) {}
         
         R operator+(R a) { re R(x+a.x, y+a.y); }
-        R operator-(R a) { re R(x-a.x, y*a.y); }
+        R operator-(R a) { re R(x-a.x, y-a.y); }
         R operator-() { re R(-x, -y); }
         R operator*(lld a) { re R(x*a, y*a); }
         lld operator*(R a) { re x*a.x + y*a.y; }
         lld operator^(R a) { re x*a.y - y*a.x; }
+    
+        friend istream& operator>>(istream& in, R& a) { re in >> a.x >> a.y; }
+        friend ostream& operator<<(ostream& out, R& a) { re out << a.x << ' ' << a.y; }
     };
     
-    istream& operator>>(istream& in, R& a) { re in >> a.x >> a.y; }
-    ostream& operator<<(ostream& out, R& a) { re out << a.x << ' ' << a.y; }
-    
+    enum STYPE {
+        line, ray, segment
+    };
+
     struct S {
         R a, b;
-        ch t; //0 - line, 1 - ray, 2 - segment
+        STYPE t;
         
-        S() : a(), b(), t(0) {}
-        S(R _a, R _b) : a(_a), b(_b), t(0) {}
-        S(R _a, R _b, ch _t) : a(_a), b(_b), t(_t) {}
-        S(lld ax, lld ay, lld bx, lld by) : a(ax,ay), b(bx,by), t(0) {}
-        S(lld ax, lld ay, lld bx, lld by, ch _t) : a(ax,ay), b(bx,by), t(_t) {}
+        S() : a(), b(), t(line) {}
+        S(R _a, R _b) : a(_a), b(_b), t(line) {}
+        S(R _a, R _b, STYPE _t) : a(_a), b(_b), t(_t) {}
+        S(lld ax, lld ay, lld bx, lld by) : a(ax,ay), b(bx,by), t(line) {}
+        S(lld ax, lld ay, lld bx, lld by, STYPE _t) : a(ax,ay), b(bx,by), t(_t) {}
         
         R operator~() { re b-a; }
         lld operator^(S x) { re (b-a)^(~x); }
-    };
     
-    istream& operator >> (istream& in, S& x) { re in >> x.a >> x.b; }
-    ostream& operator << (ostream& out, S& x) { re out << x.a << ' ' << x.b; }
+        friend istream& operator>>(istream& in, S& x) { re in >> x.a >> x.b; }
+        friend ostream& operator<<(ostream& out, S& x) { re out << x.a << ' ' << x.b; }
+    };
     
     lld dist(R a) {
         re sqrt(sq(a.x) + sq(a.y));
@@ -629,8 +633,8 @@ namespace geom {
     }
     
     bl lie(S x, lld t) {
-        if (!x.t) re 1;
-        if (x.t == 1) re t >= 0;
+        if (x.t == line) re 1;
+        if (x.t == ray) re t >= 0;
         re t >= 0 && t <= 1;
     }
     
