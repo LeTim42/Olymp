@@ -166,7 +166,7 @@ private:
         if (type == 0) while (tokens[i].value != "{" && tokens[i].value != ";") ++i;
         else if (type == 1) ++i;
         if (type != 0 || tokens[i].value == "{") {
-            size_t count = 1;
+            size_t count = 1, brackets = 0;
             bool eq = false;
             for (i += type != 2; count && i < tokens.size(); ++i) {
                 if (i && tokens[i-1].line != tokens[i].line) {
@@ -250,8 +250,13 @@ private:
                             words_buffer.pop_back();
                         }
                         if (value == "=") eq = true;
-                        else if (value == ",") eq = false;
-                    } else if (is_letter(value[0]))
+                        else if (value == "," && !brackets) eq = false;
+                        else if (value == ";") brackets = 0;
+                    } else if (value == "{")
+                        brackets++;
+                    else if (value == "}")
+                        brackets--;
+                    else if (is_letter(value[0]))
                         words_buffer.emplace_back(value);
                 }
             }
