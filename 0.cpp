@@ -199,6 +199,10 @@ namespace mod {
     int idiv(int a, int b) {
         re mul(a,pow(b,MOD-2));
     }
+
+    int llmod(ll a) {
+        re a % MOD + (a < 0 ? MOD : 0);
+    }
 }
 
 // work with graphs
@@ -414,7 +418,7 @@ namespace rnd {
     }
 
     bl b() {
-        re uid(0,1)(engine);
+        re uid<int>(0,1)(engine);
     }
     
     template<class T = int>
@@ -482,9 +486,9 @@ namespace rnd {
     }
     
     template<class T = int>
-    V<T> perm(int n, bl f = 1) {
+    V<T> perm(int n, int first = 1) {
         V<T> a(n);
-        iota(all(a),f);
+        iota(all(a),first);
         shuffle(a);
         re a;
     }
