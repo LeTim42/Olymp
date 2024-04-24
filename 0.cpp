@@ -32,6 +32,10 @@
 #define mp make_pair
 #define sq(x) ((x)*(x))
 #define sqll(x) ((ll)(x)*(x))
+#define min(a,b) ((a)<(b)?(a):(b))
+#define max(a,b) ((a)>(b)?(a):(b))
+#define amin(a,b) (a = min(a,b))
+#define amax(a,b) (a = max(a,b))
 #define sz(a) ((int)(a).size())
 #define all(a) a.be, a.en
 #define lbi(a,x) (lower_bound(all(a),(x)) - a.be)
