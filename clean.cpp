@@ -163,8 +163,15 @@ private:
         words_buffer.clear();
         vars_buffer.clear();
         if (s.start == SIZE_MAX) s.start = tokens[i].line;
-        if (type == 0) while (tokens[i].value != "{" && tokens[i].value != ";") ++i;
+        if (type == 0 || type == 3) while (tokens[i].value != "{" && tokens[i].value != ";") ++i;
         else if (type == 1) ++i;
+        if (type == 3) {
+            for (++i; i < tokens.size() && tokens[i].value != "}"; ++i)
+                if (is_letter(tokens[i].value[0]))
+                    s.words.emplace_back(tokens[i].value);
+            s.end = tokens[i].line;
+            return s;
+        }
         if (type != 0 || tokens[i].value == "{") {
             size_t count = 1, brackets = 0;
             bool eq = false;
@@ -186,10 +193,26 @@ private:
                     --count;
                 else if (value == "#") {
                     if (tokens[i+1].line == tokens[i].line) {
-                        if (tokens[i+1].value == "define") {
+                        bool define = tokens[i+1].value == "define";
+                        bool undef = tokens[i+1].value == "undef";
+                        if (define || undef) {
                             ++i;
                             size_t tmp = i;
                             def d = get_def();
+                            if (d.name == "DONT_CLEAN" && define) {
+                                space ss;
+                                for (; tokens[i].value != "undef" || tokens[i+1].value != d.name; ++i)
+                                    if (is_letter(tokens[i].value[0]))
+                                        ss.words.emplace_back(tokens[i].value);
+                                ss.name = d.name;
+                                ss.start = d.line;
+                                ss.end = tokens[i].line;
+                                ss.type = 1;
+                                s.spaces.emplace_back(ss);
+                                used.insert(d.name);
+                                get_def();
+                                continue;
+                            }
                             if (i == tmp+1) used.insert(d.name);
                             s.defines.emplace_back(d);
                         } else if (tokens[i+1].value == "ifdef")
@@ -201,8 +224,7 @@ private:
                             ss.name = "/" + s.spaces.back().name;
                             ++s.spaces.back().end;
                             s.spaces.emplace_back(ss);
-                        }
-                        else if (type != 1 || tokens[i+1].value != "endif")
+                        } else if (type != 1 || tokens[i+1].value != "endif")
                             skip();
                     }
                 } else if (value == "typedef") {
@@ -232,20 +254,30 @@ private:
                     value = tokens[i].value;
                     if (value == "/") {
                         if (tokens[i+1].value == "/") {
-                            start = std::min(start, tokens[i].line);
-                            skip();
+                            if (i+2 < tokens.size() && tokens[i+2].value == "/") {
+                                std::string comment = "///";
+                                size_t line = tokens[i].line;
+                                for (i += 3; i < tokens.size() && tokens[i].line == line; ++i)
+                                    if (is_letter(tokens[i].value[0]))
+                                        comment += " " + tokens[i].value;
+                                --i;
+                                s.spaces.emplace_back(space{0, comment, line, line});
+                            } else {
+                                start = std::min(start, tokens[i].line);
+                                skip();
+                            }
                         } else if (tokens[i+1].value == "*") {
                             start = std::min(start, tokens[i].line);
                             i += 3;
                             while (i < tokens.size() && tokens[i-1].value == "*" && tokens[i].value == "/") ++i;
                         }
                     }
-                    else if (value == "namespace" || value == "struct" || value == "class")
-                        s.spaces.emplace_back(get_space());
-                    else if (value == "(")
+                    else if (value == "namespace" || value == "struct" || value == "class" || value == "enum")
+                        s.spaces.emplace_back(get_space(value == "enum" ? 3 : 0));
+                    else if (value == "(" && !eq && !brackets)
                         s.funcs.emplace_back(get_func());
                     else if (value == "," || value == ";" || value == "=") {
-                        if (!eq && words_buffer.size()) {
+                        if (!eq && !words_buffer.empty()) {
                             vars_buffer.emplace_back(words_buffer.back());
                             words_buffer.pop_back();
                         }
@@ -266,6 +298,16 @@ private:
         unq(s.words);
         return s;
     }
+
+    void unq_space(space& s) {
+        unq(s.words);
+        for (def& d : s.defines) unq(d.words);
+        for (def& d : s.typedefs) unq(d.words);
+        for (def& d : s.usings) unq(d.words);
+        for (var& v : s.vars) unq(v.words);
+        for (func& f : s.funcs) unq(f.words);
+        for (space& ss : s.spaces) unq_space(ss);
+    }
 public:
     CppCode(std::vector<std::string>& lines) {
         get_tokens(lines);
@@ -273,6 +315,7 @@ public:
         i = 0;
         global = get_space(2);
         global.name = "main";
+        unq_space(global);
     }
 private:
     void print_words(std::vector<std::string>& words) {
@@ -286,7 +329,7 @@ private:
 
     void print_defs(std::vector<def>& defs, std::string name, std::string tab) {
         if (defs.size()) {
-            std::cout << tab << ' ' << name << std::endl;
+            std::cout << tab << "> " << name << std::endl;
             for (def& d : defs) {
                 std::cout << tab << "  " << d.name << " [" << d.line+1 << "]";
                 print_words(d.words);
@@ -296,7 +339,7 @@ private:
 
     void print_vars(std::vector<var>& vars, std::string tab) {
         if (vars.size()) {
-            std::cout << tab << " VARIABLES" << std::endl;
+            std::cout << tab << "> VARIABLES" << std::endl;
             for (var& v : vars) {
                 std::cout << tab << ' ';
                 for (auto w : v.names)
@@ -309,7 +352,7 @@ private:
 
     void print_funcs(std::vector<func>& funcs, std::string tab) {
         if (funcs.size()) {
-            std::cout << tab << " FUNCTIONS" << std::endl;
+            std::cout << tab << "> FUNCTIONS" << std::endl;
             for (func& f : funcs) {
                 std::cout << tab << "  " << f.name << " [" << f.start+1 << "; " << f.end+1 << "]";
                 print_words(f.words);
@@ -319,7 +362,7 @@ private:
 
     void print_spaces(std::vector<space>& spaces, std::string tab) {
         if (spaces.size()) {
-            std::cout << tab << " SPACES" << std::endl;
+            std::cout << tab << "> SPACES" << std::endl;
             for (space& s : spaces)
                 print_space(s, tab + "  ");
         }
@@ -358,7 +401,7 @@ private:
         for (var& v : vars)
             for (auto w : v.names)
                 if (used.find(w) != used.end()) {
-                    add_used_words(v.words);  break;
+                    add_used_words(v.words); break;
                 }
     }
 
@@ -502,10 +545,11 @@ int main(int argc, char* argv[]) {
     if (input.find('.') == -1) input += ".cpp";
     auto lines = read(input);
     CppCode code(lines);
-    // code.print();
+    bool log = !strcmp(argv[argc-1], "LOG");
+    if (log) code.print();
     auto unused = code.get_unused_code();
     auto str = clean(lines, unused);
-    if (argc < 3) copy(str);
+    if (argc - log == 2) copy(str);
     else {
         std::string output = argv[2];
         if (output.find('.') == -1) output += ".cpp";
