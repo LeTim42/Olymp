@@ -25,13 +25,15 @@
 #define V vector
 #define fi first
 #define se second
-#define be begin()
-#define en end()
 #define re return
 #define pb emplace_back
+#define pp pop_back
 #define mp make_pair
+#define be begin()
+#define en end()
 #define sq(x) ((x)*(x))
 #define sqll(x) ((ll)(x)*(x))
+#define abs(a) ((a)>0?(a):(-a))
 #define min(a,b) ((a)<(b)?(a):(b))
 #define max(a,b) ((a)>(b)?(a):(b))
 #define amin(a,b) (a = min(a,b))
@@ -48,8 +50,6 @@
 #define adif1(a,b) (adjacent_difference(all(a), b.be+1))
 #define unq(a) (a.resize(unique(all(a)) - a.be))
 #define erase1(a,x) a.erase(a.find(x))
-#define inp(n,a) int n; cin >> n; vi a(n); cin >> a
-#define inp2(n,m,a) int n, m; cin >> n >> m; vvi a(n,vi(m)); cin >> a
 #define prec(n) fixed << setprecision(n)
 #define bcount(a) __builtin_popcount(a)
 #define bcountll(a) __builtin_popcountll(a)
@@ -71,13 +71,13 @@ typedef long long ll;
 typedef unsigned long long ull;
 typedef bool bl;
 typedef char ch;
-typedef double ld;
-typedef long double lld;
+typedef double db;
+typedef long double ld;
 typedef string str;
 typedef P<int,int> pii;
 typedef P<ll,ll> pll;
-typedef P<ld,ld> pdd;
-typedef P<lld,lld> pld;
+typedef P<db,db> pdd;
+typedef P<ld,ld> pld;
 typedef P<int,ll> pill;
 typedef P<ll,int> plli;
 typedef P<int,bl> pib;
@@ -86,8 +86,8 @@ typedef V<int> vi;
 typedef V<ll> vll;
 typedef V<bl> vb;
 typedef V<ch> vc;
-typedef V<ld> vd;
-typedef V<lld> vld;
+typedef V<db> vd;
+typedef V<ld> vld;
 typedef V<str> vs;
 typedef V<pii> vii;
 typedef V<pll> vpll;
@@ -106,6 +106,11 @@ template<class T> ostream& operator<<(ostream& out, V<T>& a) { for (T& x : a) ou
 ostream& operator<<(ostream& out, vb& a) { for (bl x : a) out << x << ' '; re out; }
 template<class T> void print(T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x << sep; }
 template<class T> void print1(T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x+1 << sep; }
+
+template<typename ...P> void _inp(P &&... params) { (void(cin >> forward<P>(params)), ...); }
+#define inp(T,...) T __VA_ARGS__; _inp(__VA_ARGS__)
+#define inpv(T,n,a) int n; cin >> n; V<T> a(n); cin >> a
+#define inpvv(T,n,m,a) int n, m; cin >> n >> m; V<V<T>> a(n,V<T>(m)); cin >> a
 
 #ifdef LOCAL
 str _tab = "";
@@ -161,6 +166,17 @@ T bin_search(T l, T r, function<bl(T)> f) {
     re l;
 }
 
+// returns the minimal x in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
+template<class T>
+T bin_search_real(T l, T r, function<bl(T)> f, T eps = 1e-8) {
+    while (r-l > eps) {
+        T x = (l+r)/2;
+        if (f(x)) r = x;
+        else l = x;
+    }
+    re l;
+}
+
 // returns first x in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
 template<class T>
 T exp_search(T l, T r, function<bl(T)> f) {
@@ -173,9 +189,9 @@ T exp_search(T l, T r, function<bl(T)> f) {
     re bin_search<T>(x-(step>>1),r,f);
 }
 
-// modular arithmetic
+// Modular arithmetic
 namespace mod {
-    const int MOD = 1000000007;
+    int MOD = 1000000007;
 
     int add(int a, int b) {
         re (a + b) % MOD;
@@ -199,7 +215,7 @@ namespace mod {
         re x;
     }
 
-    // Requirements: a % b == 0, MOD - prime number
+    // Requirements: a % b == 0, MOD is prime number
     int idiv(int a, int b) {
         re mul(a,pow(b,MOD-2));
     }
@@ -209,7 +225,7 @@ namespace mod {
     }
 }
 
-// work with graphs
+// Work with graphs
 namespace graph {
     // returns graph adjacency lists from edges list
     vvi create(int n, vii& e, bl orient = 0, int first_index = 1) {
@@ -268,8 +284,8 @@ namespace graph {
         re res;
     }
 
-    // heavy-light decomposition
-    class hld {
+    // Heavy-Light Decomposition
+    class HLD {
     public:
         // parent[u] = parent of vertex u
         // depth[u] = depth of vertex u
@@ -278,7 +294,7 @@ namespace graph {
         // pos[u] = index of vertex u in segment tree
         vi parent, depth, heavy, head, pos;
 
-        hld(vvi& g) {
+        HLD(vvi& g) {
             int n = sz(g);
             parent = vi(n);
             depth = vi(n);
@@ -404,7 +420,7 @@ namespace graph {
     }
 }
 
-// generate random stuff
+// Generation of random stuff
 namespace rnd {
     mt19937 engine;
     
@@ -579,118 +595,225 @@ namespace rnd {
     }
 }
 
-// work with geometry
+// Work with geometry
 namespace geom {
-    lld eps = 1e-8;
-    
-    struct R {
-        lld x, y;
-        R() : x(0), y(0) {}
-        R(lld _x, lld _y) : x(_x), y(_y) {}
-        
-        R operator+(R a) { re R(x+a.x, y+a.y); }
-        R operator-(R a) { re R(x-a.x, y-a.y); }
-        R operator-() { re R(-x, -y); }
-        R operator*(lld a) { re R(x*a, y*a); }
-        lld operator*(R a) { re x*a.x + y*a.y; }
-        lld operator^(R a) { re x*a.y - y*a.x; }
-    
-        friend istream& operator>>(istream& in, R& a) { re in >> a.x >> a.y; }
-        friend ostream& operator<<(ostream& out, R& a) { re out << a.x << ' ' << a.y; }
-    };
-    
-    enum STYPE {
-        line, ray, segment
+    const db EPS = 1e-8;
+    const db PI = 3.14159265358979323846;
+
+    // Double with eps precision on comparisons
+    struct F {
+        db x;
+
+        F() : x() {}
+        template<class T> F(T x) : x(x) {}
+
+        operator db() const { re x; }
+        F& operator=(const F& f) { x = f.x; re *this; }
+        F& operator+=(const F& f) { x += f.x; re *this; }
+        F& operator-=(const F& f) { x -= f.x; re *this; }
+        F& operator*=(const F& f) { x *= f.x; re *this; }
+        F& operator/=(const F& f) { x /= f.x; re *this; }
+
+        friend istream& operator>>(istream& in, F& f) { re in >> f.x; }
+        friend ostream& operator<<(ostream& out, const F& f) { re out << f.x; }
+
+        F operator-() const { re F(-x); }
+        F operator+(const F& f) const { re F(x + f.x); }
+        F operator-(const F& f) const { re F(x - f.x); }
+        F operator*(const F& f) const { re F(x * f.x); }
+        F operator/(const F& f) const { re F(x / f.x); }
+
+        bl operator==(const F& f) const { re fabs(x - f.x) < EPS; }
+        bl operator!=(const F& f) const { re !(*this == f); }
+        bl operator<(const F& f) const { re x < f.x - EPS; }
+        bl operator>(const F& f) const { re f < *this; }
+        bl operator<=(const F& f) const { re !(*this > f); }
+        bl operator>=(const F& f) const { re !(*this < f); }
     };
 
-    struct S {
-        R a, b;
-        STYPE t;
+    template<class F>
+    struct Point {
+        F x, y;
+
+        Point() : x(0), y(0) {}
+        Point(const F& x, const F& y) : x(x), y(y) {}
         
-        S() : a(), b(), t(line) {}
-        S(R _a, R _b) : a(_a), b(_b), t(line) {}
-        S(R _a, R _b, STYPE _t) : a(_a), b(_b), t(_t) {}
-        S(lld ax, lld ay, lld bx, lld by) : a(ax,ay), b(bx,by), t(line) {}
-        S(lld ax, lld ay, lld bx, lld by, STYPE _t) : a(ax,ay), b(bx,by), t(_t) {}
-        
-        R operator~() { re b-a; }
-        lld operator^(S x) { re (b-a)^(~x); }
-    
-        friend istream& operator>>(istream& in, S& x) { re in >> x.a >> x.b; }
-        friend ostream& operator<<(ostream& out, S& x) { re out << x.a << ' ' << x.b; }
+        template<class F1> Point<F>& operator=(const Point<F1>& other) { x = other.x; y = other.y; re *this; }
+        template<class F1> Point<F>& operator+=(const Point<F1>& other) { x += other.x; y += other.y; re *this; }
+        template<class F1> Point<F>& operator-=(const Point<F1>& other) { x -= other.x; y -= other.y; re *this; }
+        template<class F1> Point<F>& operator*=(const F1& factor) { x *= factor; y *= factor; re *this; }
+        template<class F1> Point<F>& operator/=(const F1& factor) { x /= factor; y /= factor; re *this; }
+
+        friend istream& operator>>(istream& in, Point<F>& p) { re in >> p.x >> p.y; }
+        friend ostream& operator<<(ostream& out, const Point<F>& p) { re out << p.x << ' ' << p.y; }
     };
+
+    #define DONT_CLEAN
+    #define FUNC1(name, arg, expr) template<class F> inline auto name(const arg) -> decltype(expr) { re expr; }
+    #define FUNC2(name, arg1, arg2, expr) template<class F1, class F2> inline auto name(const arg1, const arg2) -> decltype(expr) { re expr; }
+    #define FUNC3(name, arg1, arg2, arg3, expr) template<class F1, class F2, class F3> inline auto name(const arg1, const arg2, const arg3) -> decltype(expr) { re expr; }
     
-    lld dist(R a) {
-        re sqrt(sq(a.x) + sq(a.y));
+    template<class F> inline Point<F> make_point(const F& x, const F& y) { re Point<F>(x, y); }
+
+    FUNC1(operator-, Point<F>& point, make_point(-point.x, -point.y))
+    FUNC2(operator+, Point<F1>& lhs, Point<F2>& rhs, make_point(lhs.x + rhs.x, lhs.y + rhs.y))
+    FUNC2(operator-, Point<F1>& lhs, Point<F2>& rhs, make_point(lhs.x - rhs.x, lhs.y - rhs.y))
+    FUNC2(operator*, F1& factor, Point<F2>& rhs, make_point(factor * rhs.x, factor * rhs.y))
+    FUNC2(operator*, Point<F1>& lhs, F2& factor, make_point(lhs.x * factor, lhs.y * factor))
+    FUNC2(operator/, Point<F1>& lhs, F2& factor, make_point(lhs.x / factor, lhs.y / factor))
+    FUNC2(operator*, Point<F1>& lhs, Point<F2>& rhs, lhs.x * rhs.x + lhs.y * rhs.y)
+    FUNC2(operator^, Point<F1>& lhs, Point<F2>& rhs, lhs.x * rhs.y - lhs.y * rhs.x)
+    FUNC2(operator==, Point<F1>& lhs, Point<F2>& rhs, lhs.x == rhs.x && lhs.y == rhs.y)
+    FUNC2(operator!=, Point<F1>& lhs, Point<F2>& rhs, !(lhs == rhs))
+    FUNC2(operator<, Point<F1>& lhs, Point<F2>& rhs, lhs.x < rhs.x || (lhs.x == rhs.x && lhs.y < rhs.y))
+    FUNC2(operator>, Point<F1>& lhs, Point<F2>& rhs, rhs < lhs)
+    FUNC2(operator<=, Point<F1>& lhs, Point<F2>& rhs, !(lhs > rhs))
+    FUNC2(operator>=, Point<F1>& lhs, Point<F2>& rhs, !(lhs < rhs))
+
+    FUNC1(angle, Point<F>& p, atan2(p.y, p.x)) // angle between vector p and x-axis
+    FUNC2(angle, Point<F1>& lhs, Point<F2>& rhs, atan2(lhs ^ rhs, lhs * rhs)) // angle between vectors lhs and rhs
+    FUNC3(angle, Point<F1>& lhs, Point<F2>& rhs, Point<F3>& origin, angle(lhs - origin, rhs - origin)) // angle between vectors (lhs - origin) and (rhs - origin)
+
+    FUNC3(rotate, Point<F1>& p, F2& angleSin, F3& angleCos, make_point(angleCos * p.x - angleSin * p.y, angleSin * p.x + angleCos * p.y))
+    FUNC2(rotate, Point<F1>& p, F2& angle, rotate(p, sin(angle), cos(angle))) // rotate vector p by angle radians
+    FUNC3(rotate, Point<F1>& p, F2& angle, Point<F3>& origin, origin + rotate(p - origin, angle)) // rotate vector p by angle radians around point origin
+
+    FUNC1(perp, Point<F>& p, Point<F>(-p.y, p.x))
+    FUNC1(sqn, Point<F>& p, p * p) // length^2 of vector p
+    FUNC1(norm, Point<F>& p, sqrt(sqn(p))) // length of vector p
+    FUNC2(dist, Point<F1>& lhs, Point<F2>& rhs, norm(lhs - rhs)) // distance between points lhs and rhs
+    FUNC2(dist2, Point<F1>& lhs, Point<F2>& rhs, sqn(lhs - rhs)) // distance^2 between points lhs and rhs
+    FUNC2(bisector, Point<F1>& lhs, Point<F2>& rhs, lhs * norm(rhs) + rhs * norm(lhs)) // bisector between vectors lhs and rhs
+    FUNC3(bisector, Point<F1>& lhs, Point<F2>& rhs, Point<F3>& origin, bisector(lhs - origin, rhs - origin) + origin) // bisector between vectors lhs and rhs at point origin
+    FUNC2(coef, Point<F1>& a, Point<F2>& b, mp(perp(b-a), a^b)) // coefficients of line with points a and b
+
+    #undef FUNC3
+    #undef FUNC2
+    #undef FUNC1
+    #undef DONT_CLEAN
+
+    enum LINE_TYPE {
+        LINE, SEGMENT, RAY
+    };
+
+    template<class F>
+    struct Line {
+        Point<F> a, ab;
+        LINE_TYPE t;
+
+        Line() : a(), ab(), t(LINE) {}
+        Line(const LINE_TYPE t) : a(), ab(), t(t) {}
+        Line(const Point<F>& a, const Point<F>& b) : a(a), ab(b-a), t(LINE) {}
+        Line(const Point<F>& a, const Point<F>& b, const LINE_TYPE t) : a(a), ab(b-a), t(t) {}
+        Line(const F& a, const F& b, const F& c) : a(a==0?0:-c/a,a==0?-c/b:0), ab(b,-a), t(LINE) {}
+        Line(const F& a, const F& b, const F& c, const LINE_TYPE t) : a(-c/a,0), ab(b,-a), t(t) {}
+        Line(const F& ax, const F& ay, const F& bx, const F& by) : a(ax, ay), ab(bx-ax, by-ay), t(LINE) {}
+        Line(const F& ax, const F& ay, const F& bx, const F& by, const LINE_TYPE t) : a(ax, ay), ab(bx-ax, by-ay), t(t) {}
+
+        template<class F1>
+        Line<F>& operator=(const Line<F1>& other) {
+            a = other.a; ab = other.ab; t = other.t; return *this;
+        }
+
+        Point<F> b() const {
+            re a + ab;
+        }
+    };
+
+    // is point p lies on line l
+    template<class F1, class F2>
+    auto lay(const Point<F1>& p, const Line<F2>& l) {
+        if (l.ab == Point<F2>()) re p == l.a;
+        auto a = l.a - p, b = l.b() - p;
+        if (a ^ b == 0) re false;
+        if (l.t == LINE) re true;
+        if (l.t == SEGMENT) re a * b <= 0;
+        re a * l.ab <= 0;
     }
-    
-    lld len(S x) {
-        re dist(~x);
+
+    template <class F1, class F2> using distF = decltype(sqrt(F1() + F2()));
+
+    // distance between point p and line l
+    template<class F1, class F2>
+    distF<F1,F2> dist(const Point<F1>& p, const Line<F2>& l) {
+        if (l.ab == Point<F2>()) re dist(p, l.a);
+        if (l.t != LINE && (p - l.a) * l.ab <= 0) re dist(p, l.a);
+        if (l.t == SEGMENT && (p - l.b()) * l.ab >= 0) re dist(p, l.b());
+        re abs((p - l.a) ^ l.ab) / norm(l.ab);
     }
-    
-    lld dist(S l, R m) {
-        re abs((~l)^(m-l.a))/len(l);
+
+    // projection of point p to line l
+    template<class F1, class F2, class F3>
+    void projection(const Point<F1>& p, const Line<F2>& l, Point<F3>& res) {
+        res = l.a;
+        if (l.ab == Point<F2>()) re;
+        if (l.t != LINE && (p - l.a) * l.ab <= 0) re;
+        if (l.t == SEGMENT && (p - l.b()) * l.ab >= 0) { res = l.b(); re; }
+        res += l.ab * (F3)((p - l.a) * l.ab) / sqn(l.ab);
     }
-    
-    lld tan(R a) {
-        re a.y/a.x;
+
+    // reflection of point p around line l
+    template<class F1, class F2, class F3>
+    void reflection(const Point<F1>& p, const Line<F2>& l, Point<F3>& res) {
+        projection(p, l, res);
+        res = res * 2 - p;
     }
-    
-    lld area(S a, S b) {
-        re abs((~a)^(~b))/2;
+
+    // intersection of lines lhs and rhs
+    template<class F1, class F2, class F3>
+    bl intersect(const Line<F1>& lhs, const Line<F2>& rhs, Point<F3>& res) {
+        if (lhs.ab == Point<F1>() || rhs.ab == Point<F2>()) re 0;
+        auto s = lhs.ab ^ rhs.ab;
+        if (s == 0) re 0;
+        auto ls = (rhs.a - lhs.a) ^ rhs.ab;
+        auto rs = (rhs.a - lhs.a) ^ lhs.ab;
+        if (s < 0) s = -s, ls = -ls, rs = -rs;
+        res = lhs.a + lhs.ab * ((F3)ls / s);
+        re (lhs.t == LINE || (ls >= 0 && (lhs.t == RAY || ls <= s))) &&
+           (rhs.t == LINE || (rs >= 0 && (rhs.t == RAY || rs <= s)));
     }
-    
-    bl lie(S x, lld t) {
-        if (x.t == line) re 1;
-        if (x.t == ray) re t >= 0;
-        re t >= 0 && t <= 1;
+
+    // distance between lines lhs and rhs
+    template<class F1, class F2>
+    distF<F1,F2> dist(const Line<F1>& lhs, const Line<F2>& rhs) {
+        if (lhs.ab == Point<F1>()) re dist(lhs.a, rhs);
+        if (rhs.ab == Point<F2>()) re dist(rhs.a, lhs);
+        Point<distF<F1,F2>> p;
+        if (intersect(lhs, rhs, p)) re 0;
+        distF<F1,F2> d = min(dist(lhs.a, rhs), dist(rhs.a, lhs));
+        if (lhs.t == SEGMENT) amin(d, dist(lhs.b(), rhs));
+        if (rhs.t == SEGMENT) amin(d, dist(rhs.b(), lhs));
+        re d;
     }
-    
-    R intersect(S x, S y, bl& is) {
-        is = 0;
-        lld d = -((~x)^(~y));
-        if (abs(d) < eps) return R();
-        lld t1 = ((x.a-y.a)^(~y))/d;
-        lld t2 = ((~x)^(y.a-x.a))/d;
-        is = lie(x,t1) && lie(y,t2);
-        re x.a + (~x)*t1;
-    }
-    
-    R projection(S l, R m) {
-        R p = ~l;
-        R q(-p.y,p.x);
-        R r(p^l.b,p^m);
-        lld d = p^q;
-        re R((p^r)/d, (r^q)/d);
-    }
-    
-    V<R> convexHull(V<R>& points) {
-        R key(INF,INF);
-        for (R& p : points)
-            if (p.x < key.x || (p.x == key.x && p.y < key.y))
+
+    template<class F>
+    V<Point<F>> convex_hull(V<Point<F>>& points) {
+        Point<F> key(iINF,iINF);
+        for (const Point<F>& p : points)
+            if (p < key)
                 key = p;
-        sort(all(points), [&](R a, R b) {
-           re ((a-key)^(b-a)) > 0; 
+        sort(all(points), [&](const Point<F>& a, const Point<F>& b) {
+           re (a - key) ^ (b - a) > 0;
         });
-        V<R> hull(1,key);
-        for (R& p : points) {
-            while (sz(hull) > 1 && ((hull.back() - hull[sz(hull)-2])^(p - hull.back())) <= 0)
-                hull.pop_back();
+        V<Point<F>> hull(1,key);
+        for (const Point<F>& p : points) {
+            while (sz(hull) > 1 && ((hull.back() - hull[sz(hull)-2]) ^ (p - hull.back())) <= 0)
+                hull.pp();
             hull.pb(p);
         }
         re hull;
     }
 }
 
-// custom bitset
-class bits {
+// Custom bitset
+class Bitset {
 private:
     size_t n, m;
     unsigned char r;
     ull extra;
     ull *a;
 public:
-    bits() {
+    Bitset() {
         n = 64;
         m = 1;
         r = 64;
@@ -699,7 +822,7 @@ public:
         a[0] = 0;
     }
 
-    bits(size_t _n) : n(_n) {
+    Bitset(size_t _n) : n(_n) {
         r = n&63;
         m = (n>>6) + (r != 0);
         if (!r) r = 64;
@@ -708,7 +831,7 @@ public:
         memset(a, 0, 8*m);
     }
 
-    bits(str s) {
+    Bitset(str s) {
         n = sz(s);
         r = n&63;
         m = (n>>6) + (r != 0);
@@ -725,7 +848,7 @@ public:
         }
     }
 
-    bits(const bits& b) {
+    Bitset(const Bitset& b) {
         n = b.n;
         m = b.m;
         r = b.r;
@@ -734,7 +857,7 @@ public:
         memcpy(a, b.a, 8*m);
     }
 
-    ~bits() {
+    ~Bitset() {
         delete[] a;
     }
 
@@ -746,24 +869,24 @@ public:
         return (a[i>>6] >> (i&63)) & 1;
     }
 
-    bits& reset() {
+    Bitset& reset() {
         memset(a, 0, 8*m);
         return *this;
     }
 
-    bits& set() {
+    Bitset& set() {
         memset(a, -1, 8*(m-1));
         a[m-1] = extra;
         return *this;
     }
 
-    bits& set(size_t i, bl b = 1) {
+    Bitset& set(size_t i, bl b = 1) {
         if (b) a[i>>6] |= 1ull << (i&63);
         else a[i>>6] &= ~(1ull << (i&63));
         return *this;
     }
 
-    bits& flip() {
+    Bitset& flip() {
         f0r(i,m) a[i] = ~a[i];
         a[m-1] &= extra;
         return *this;
@@ -829,7 +952,7 @@ public:
         return -1;
     }
 
-    bits& operator=(const bits& b) {
+    Bitset& operator=(const Bitset& b) {
         if (m != b.m) {
             delete[] a;
             a = new ull[m];
@@ -842,14 +965,14 @@ public:
         return *this;
     }
 
-    bl operator==(const bits& b) const {
+    bl operator==(const Bitset& b) const {
         f0r(i,min(m,b.m)) if (a[i] != b.a[i]) return 0;
         if (m > b.m) rep(i,b.m,m) if (a[i]) return 0;
         else rep(i,m,b.m) if (b.a[i]) return 0;
         return 1;
     }
 
-    bl operator!=(const bits& b) const {
+    bl operator!=(const Bitset& b) const {
         f0r(i,min(m,b.m)) if (a[i] != b.a[i]) return 1;
         if (m > b.m) rep(i,b.m,m) if (a[i]) return 1;
         else rep(i,m,b.m) if (b.a[i]) return 1;
@@ -860,25 +983,25 @@ public:
         return get(i);
     }
 
-    bits& operator&=(const bits& b) {
+    Bitset& operator&=(const Bitset& b) {
         assert(n >= b.n);
         f0r(i,b.m) a[i] &= b.a[i];
         return *this;
     }
 
-    bits& operator|=(const bits& b) {
+    Bitset& operator|=(const Bitset& b) {
         assert(n >= b.n);
         f0r(i,b.m) a[i] |= b.a[i];
         return *this;
     }
 
-    bits& operator^=(const bits& b) {
+    Bitset& operator^=(const Bitset& b) {
         assert(n >= b.n);
         f0r(i,b.m) a[i] ^= b.a[i];
         return *this;
     }
 
-    bits& operator>>=(size_t shift) {
+    Bitset& operator>>=(size_t shift) {
         const size_t d = shift/64;
         const size_t r = shift%64;
         const size_t l = m-d;
@@ -892,7 +1015,7 @@ public:
         re *this;
     }
 
-    bits& operator<<=(size_t shift) {
+    Bitset& operator<<=(size_t shift) {
         const size_t d = shift/64;
         const size_t r = shift%64;
         if (r) {
@@ -906,47 +1029,47 @@ public:
         re *this;
     }
 
-    bits operator>>(size_t shift) const {
-        re bits(*this) >>= shift;
+    Bitset operator>>(size_t shift) const {
+        re Bitset(*this) >>= shift;
     }
 
-    bits operator<<(size_t shift) const {
-        re bits(*this) <<= shift;
+    Bitset operator<<(size_t shift) const {
+        re Bitset(*this) <<= shift;
     }
 
-    bits operator~() const {
-        return bits(*this).flip();
+    Bitset operator~() const {
+        return Bitset(*this).flip();
     }
 
-    bits operator&(const bits& b) {
-        re bits(*this) &= b;
+    Bitset operator&(const Bitset& b) {
+        re Bitset(*this) &= b;
     }
 
-    bits operator|(const bits& b) {
-        re bits(*this) |= b;
+    Bitset operator|(const Bitset& b) {
+        re Bitset(*this) |= b;
     }
 
-    bits operator^(const bits& b) {
-        re bits(*this) ^= b;
+    Bitset operator^(const Bitset& b) {
+        re Bitset(*this) ^= b;
     }
 
-    friend istream& operator<<(istream& in, bits& b) {
+    friend istream& operator<<(istream& in, Bitset& b) {
         str s; in >> s;
-        b = bits(s);
+        b = Bitset(s);
         re in;
     }
 
-    friend ostream& operator<<(ostream& out, const bits& b) {
+    friend ostream& operator<<(ostream& out, const Bitset& b) {
         re out << b.to_str();
     }
 };
 
-// disjoint set
-class dsu {
+// Disjoint Set Union
+class DSU {
 private:
     vi p, h;
 public:
-    dsu(int n) {
+    DSU(int n) {
         p = vi(n);
         h = vi(n);
         iota(all(p),0);
@@ -969,12 +1092,12 @@ public:
 };
 
 template<class T = int>
-class sparse_table {
+class SparseTable {
 private:
     V<V<T>> t;
     T(*f)(T,T);
 public:
-    sparse_table(V<T>& a, T(*_f)(T,T) = &fmin) : f(_f) {
+    SparseTable(V<T>& a, T(*_f)(T,T) = &fmin) : f(_f) {
         int n = sz(a), m = __lg(n);
         t = V<V<T>>(m+1);
         t[0] = a;
@@ -996,14 +1119,14 @@ public:
 // f(T,nil) == f(nil,T) == T
 // if T is complicated then T() must has length 1
 template<class T = int>
-class seg_tree {
+class SegTree {
 private:
     int n;
     V<T> t;
     T(*f)(T,T);
     T nil;
 public:
-    seg_tree(int _n, T(*_f)(T,T) = &fadd, T _nil = T()) : n(_n), f(_f), nil(_nil) {
+    SegTree(int _n, T(*_f)(T,T) = &fadd, T _nil = T()) : n(_n), f(_f), nil(_nil) {
         t = V<T>(n<<1);
     }
     
@@ -1050,7 +1173,7 @@ public:
 // f(T,nil) == f(nil,T) == T
 // if T is complicated then T() must has length 1
 template<class T = int, class D = int>
-class seg_tree_lp {
+class SegTreeLP {
 private:
     int n, h;
     V<T> t;
@@ -1081,7 +1204,7 @@ private:
         }
     }
 public:
-    seg_tree_lp(int _n, T(*_f)(T,T) = &fmax, T _nil = T()) : n(_n), f(_f), nil(_nil) {
+    SegTreeLP(int _n, T(*_f)(T,T) = &fmax, T _nil = T()) : n(_n), f(_f), nil(_nil) {
         t = V<T>(n<<1);
         h = lbit(n)+1;
         d = V<D>(n);
@@ -1228,7 +1351,7 @@ auto slow(/*input*/) {
     re 0;
 }
 
-// ================ ACTUAL CODE STARTS HERE ================ //
+/// ================ ACTUAL CODE STARTS HERE ================ ///
 
 void out(auto& ans) {
     cout << ans << '\n';
