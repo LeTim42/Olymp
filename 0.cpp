@@ -33,7 +33,7 @@
 #define en end()
 #define sq(x) ((x)*(x))
 #define sqll(x) ((ll)(x)*(x))
-#define abs(a) ((a)>0?(a):(-a))
+#define abs(a) ((a)>0?(a):-(a))
 #define min(a,b) ((a)<(b)?(a):(b))
 #define max(a,b) ((a)>(b)?(a):(b))
 #define amin(a,b) (a = min(a,b))
@@ -388,7 +388,7 @@ namespace graph {
         re res;
     }
 
-    vi cut_points(vvi& g) {
+    vi cut_Points(vvi& g) {
         int n = sz(g);
         vb was(n);
         vi tin(n), fup(n);
@@ -787,15 +787,25 @@ namespace geom {
     }
 
     template<class F>
+    distF<F,F> perimeter(const V<Point<F>>& points) {
+        int n = sz(points);
+        distF<F,F> ans;
+        f0r(i,n) ans += dist(points[i], points[(i+1)%n]);
+        re ans;
+    }
+
+    template<class F>
     V<Point<F>> convex_hull(V<Point<F>>& points) {
         Point<F> key(iINF,iINF);
         for (const Point<F>& p : points)
             if (p < key)
                 key = p;
         sort(all(points), [&](const Point<F>& a, const Point<F>& b) {
-           re (a - key) ^ (b - a) > 0;
+            int c = ((a - key) ^ (b - a));
+            if (!c) re dist2(a,key) < dist2(b,key);
+            re c > 0;
         });
-        V<Point<F>> hull(1,key);
+        V<Point<F>> hull;
         for (const Point<F>& p : points) {
             while (sz(hull) > 1 && ((hull.back() - hull[sz(hull)-2]) ^ (p - hull.back())) <= 0)
                 hull.pp();
