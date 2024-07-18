@@ -31,11 +31,6 @@
 #define mp make_pair
 #define be begin()
 #define en end()
-#define sq(x) ((x)*(x))
-#define sqll(x) ((ll)(x)*(x))
-#define abs(a) ((a)>0?(a):-(a))
-#define min(a,b) ((a)<(b)?(a):(b))
-#define max(a,b) ((a)>(b)?(a):(b))
 #define amin(a,b) (a = min(a,b))
 #define amax(a,b) (a = max(a,b))
 #define sz(a) ((int)(a).size())
@@ -99,11 +94,10 @@ typedef V<vb> vvb;
 typedef V<vc> vvc;
 typedef V<vii> vvii;
 
-template<class T1, class T2> ostream& operator<<(ostream& out, P<T1,T2>& a) { re out << a.fi << ' ' << a.se; }
+template<class T1, class T2> ostream& operator<<(ostream& out, const P<T1,T2>& a) { re out << a.fi << ' ' << a.se; }
 template<class T1, class T2> istream& operator>>(istream& in, P<T1,T2>& a) { re in >> a.fi >> a.se; }
 template<class T> istream& operator>>(istream& in, V<T>& a) { for (T& x : a) in >> x; re in; }
-template<class T> ostream& operator<<(ostream& out, V<T>& a) { for (T& x : a) out << x << ' '; re out; }
-ostream& operator<<(ostream& out, vb& a) { for (bl x : a) out << x << ' '; re out; }
+template<class T> ostream& operator<<(ostream& out, const V<T>& a) { for (const T& x : a) out << x << ' '; re out; }
 template<class T> void print(T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x << sep; }
 template<class T> void print1(T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x+1 << sep; }
 
@@ -136,6 +130,12 @@ struct TAB_HELPER {
 template<class T = int> T fadd(T a, T b) { re a+b; }
 template<class T = int> T fmin(T a, T b) { re min(a,b); }
 template<class T = int> T fmax(T a, T b) { re max(a,b); }
+
+template<class T> T sq(T a) { re a * a; }
+template<class T> ll sqll(T a) { re (ll)a * a; }
+template<class T> T abs(T a) { re a > 0 ? a : -a; }
+template<class T1, class T2> decltype(T1()+T2()) min(T1 a, T2 b) { re a < b ? a : b; }
+template<class T1, class T2> decltype(T1()+T2()) max(T1 a, T2 b) { re a > b ? a : b; }
 
 const int iINF = 2000000007;
 const ll INF = 2000000000000000007;
@@ -222,6 +222,60 @@ namespace mod {
 
     int llmod(ll a) {
         re a % MOD + (a < 0 ? MOD : 0);
+    }
+
+    vi log(int a, int b) {
+        int m = MOD;
+        MOD /= __gcd(a,m);
+        int n = (int)sqrt(MOD+.0) + 1;
+        int an = pow(a,n);
+        int x = an;
+        multimap<int,int> vals;
+        rep(i,1,n+1) {
+            vals.insert(mp(x,i));
+            x = mul(x,an);
+        }
+        x = b;
+        vi ans;
+        f0r(i,n+1) {
+            auto r = vals.equal_range(x);
+            for (auto it = r.fi; it != r.se; ++it) {
+                int x = (*it).se * n - i;
+                if (x >= m) continue;
+                swap(m,MOD);
+                if (pow(a,x) == b)
+                    ans.pb(x);
+                swap(m,MOD);
+            }
+            x = mul(x,a);
+        }
+        sort(all(ans));
+        unq(ans);
+        re ans;
+    }
+
+    vvi mul(const vvi& a, const vvi& b) {
+        int n = sz(a), m = sz(b[0]), l = sz(a[0]);
+        assert(l == sz(b));
+        vvi c(n, vi(m));
+        f0r(i,n)
+            f0r(j,m)
+                f0r(k,l)
+                    c[i][j] = add(c[i][j], mul(a[i][k], b[k][j]));
+        re c;
+    }
+
+    vvi pow(vvi a, int n) {
+        int m = sz(a);
+        assert(m == sz(a[0]));
+        vvi x(m, vi(m));
+        f0r(i,m) x[i][i] = 1;
+        for (; n; n >>= 1) {
+            if (n & 1)
+                x = mul(x,a);
+            a = mul(a,a);
+        }
+        re x;
     }
 }
 
@@ -446,7 +500,7 @@ namespace rnd {
         re uid<T>(l,r)(engine);
     }
     
-    template<class T = ld>
+    template<class T = db>
     T d(T l, T r) { //[l; r]
         re urd<T>(l,r)(engine);
     }
@@ -625,7 +679,7 @@ namespace geom {
 
         bl operator==(const F& f) const { re fabs(x - f.x) < EPS; }
         bl operator!=(const F& f) const { re !(*this == f); }
-        bl operator<(const F& f) const { re x < f.x - EPS; }
+        bl operator<(const F& f) const { re *this != f && x < f.x; }
         bl operator>(const F& f) const { re f < *this; }
         bl operator<=(const F& f) const { re !(*this > f); }
         bl operator>=(const F& f) const { re !(*this < f); }
@@ -722,13 +776,18 @@ namespace geom {
 
     // is point p lies on line l
     template<class F1, class F2>
-    auto lay(const Point<F1>& p, const Line<F2>& l) {
+    bl lay(const Point<F1>& p, const Line<F2>& l) {
         if (l.ab == Point<F2>()) re p == l.a;
         auto a = l.a - p, b = l.b() - p;
-        if (a ^ b == 0) re false;
-        if (l.t == LINE) re true;
-        if (l.t == SEGMENT) re a * b <= 0;
-        re a * l.ab <= 0;
+        auto s = a ^ b;
+        if (s == decltype(s)()) re 0;
+        if (l.t == LINE) re 1;
+        if (l.t == SEGMENT) {
+            auto s = a * b;
+            re s <= decltype(s)();
+        }
+        auto s2 = a * l.ab;
+        re s2 <= decltype(s2)();
     }
 
     template <class F1, class F2> using distF = decltype(sqrt(F1() + F2()));
@@ -737,8 +796,10 @@ namespace geom {
     template<class F1, class F2>
     distF<F1,F2> dist(const Point<F1>& p, const Line<F2>& l) {
         if (l.ab == Point<F2>()) re dist(p, l.a);
-        if (l.t != LINE && (p - l.a) * l.ab <= 0) re dist(p, l.a);
-        if (l.t == SEGMENT && (p - l.b()) * l.ab >= 0) re dist(p, l.b());
+        auto s = (p - l.a) * l.ab;
+        if (l.t != LINE && s <= decltype(s)()) re dist(p, l.a);
+        auto s2 = (p - l.b()) * l.ab;
+        if (l.t == SEGMENT && s2 >= decltype(s2)()) re dist(p, l.b());
         re abs((p - l.a) ^ l.ab) / norm(l.ab);
     }
 
@@ -747,9 +808,11 @@ namespace geom {
     void projection(const Point<F1>& p, const Line<F2>& l, Point<F3>& res) {
         res = l.a;
         if (l.ab == Point<F2>()) re;
-        if (l.t != LINE && (p - l.a) * l.ab <= 0) re;
-        if (l.t == SEGMENT && (p - l.b()) * l.ab >= 0) { res = l.b(); re; }
-        res += l.ab * (F3)((p - l.a) * l.ab) / sqn(l.ab);
+        auto s = (p - l.a) * l.ab;
+        if (l.t != LINE && s <= decltype(s)()) re;
+        auto s2 = (p - l.b()) * l.ab;
+        if (l.t == SEGMENT && s2 >= decltype(s2)()) { res = l.b(); re; }
+        res += l.ab * (F3)s / sqn(l.ab);
     }
 
     // reflection of point p around line l
@@ -764,13 +827,13 @@ namespace geom {
     bl intersect(const Line<F1>& lhs, const Line<F2>& rhs, Point<F3>& res) {
         if (lhs.ab == Point<F1>() || rhs.ab == Point<F2>()) re 0;
         auto s = lhs.ab ^ rhs.ab;
-        if (s == 0) re 0;
+        if (s == decltype(s)()) re 0;
         auto ls = (rhs.a - lhs.a) ^ rhs.ab;
         auto rs = (rhs.a - lhs.a) ^ lhs.ab;
-        if (s < 0) s = -s, ls = -ls, rs = -rs;
+        if (s < decltype(s)()) s = -s, ls = -ls, rs = -rs;
         res = lhs.a + lhs.ab * ((F3)ls / s);
-        re (lhs.t == LINE || (ls >= 0 && (lhs.t == RAY || ls <= s))) &&
-           (rhs.t == LINE || (rs >= 0 && (rhs.t == RAY || rs <= s)));
+        re (lhs.t == LINE || (ls >= decltype(ls)() && (lhs.t == RAY || ls <= s))) &&
+           (rhs.t == LINE || (rs >= decltype(rs)() && (rhs.t == RAY || rs <= s)));
     }
 
     // distance between lines lhs and rhs
@@ -801,13 +864,13 @@ namespace geom {
             if (p < key)
                 key = p;
         sort(all(points), [&](const Point<F>& a, const Point<F>& b) {
-            int c = ((a - key) ^ (b - a));
-            if (!c) re dist2(a,key) < dist2(b,key);
-            re c > 0;
+            F c = (a - key) ^ (b - a);
+            if (c == F()) re dist2(a,key) < dist2(b,key);
+            re c > F();
         });
         V<Point<F>> hull;
         for (const Point<F>& p : points) {
-            while (sz(hull) > 1 && ((hull.back() - hull[sz(hull)-2]) ^ (p - hull.back())) <= 0)
+            while (sz(hull) > 1 && ((hull.back() - hull[sz(hull)-2]) ^ (p - hull.back())) <= F())
                 hull.pp();
             hull.pb(p);
         }
