@@ -18,6 +18,8 @@
 #include <ctime>
 #include <random>
 #ifdef LOCAL
+#include <thread>
+#include <future>
 #include <windows.h>
 #endif
 
@@ -66,9 +68,11 @@ typedef long long ll;
 typedef unsigned long long ull;
 typedef bool bl;
 typedef char ch;
+typedef float fl;
 typedef double db;
 typedef long double ld;
 typedef string str;
+typedef stringstream sstr;
 typedef P<int,int> pii;
 typedef P<ll,ll> pll;
 typedef P<db,db> pdd;
@@ -136,6 +140,9 @@ template<class T> ll sqll(T a) { re (ll)a * a; }
 template<class T> T abs(T a) { re a > 0 ? a : -a; }
 template<class T1, class T2> decltype(T1()+T2()) min(T1 a, T2 b) { re a < b ? a : b; }
 template<class T1, class T2> decltype(T1()+T2()) max(T1 a, T2 b) { re a > b ? a : b; }
+
+int _exit_code = 0;
+void throw_divide_by_zero_exception() { _exit_code = 4 - 4; _exit_code = 1 / _exit_code; }
 
 const int iINF = 2000000007;
 const ll INF = 2000000000000000007;
@@ -1137,6 +1144,377 @@ public:
     }
 };
 
+// Long arithmetics
+class BigInt {
+private:
+    using u = uint32_t;
+    using ul = uint64_t;
+    V<u> nums;
+    bl neg;
+
+    void make_same_len(const BigInt& other, V<u>& a, V<u>& b) const {
+        a = nums;
+        b = other.nums;
+        int diff = sz(a) - sz(b);
+        if (diff > 0)
+            f0r(i,diff) b.pb(0);
+        else if (diff < 0)
+            f0r(i,-diff) a.pb(0);
+    }
+
+    void remove_leading_zeros() {
+        while (sz(nums) > 1 && !nums.back())
+            nums.pp();
+    }
+
+    void zero() {
+        nums.assign(1,0);
+        neg = 0;
+    }
+
+    void check_zero() {
+        if (is_zero())
+            neg = 0;
+    }
+
+    template<class T>
+    void itov(T n) {
+        if (neg = n < T())
+            n = -n;
+        do {
+            nums.pb(n);
+            n = n / (ll(~u()) + ll(1));
+        } while (n);
+    }
+
+    template<class T>
+    T vtoi() const {
+        T res = 0;
+        for (u i : nums)
+            res = res * (ll(~u()) + ll(1)) + i;
+        if (neg) res = -res;
+        re res;
+    }
+    
+public:
+    BigInt() { zero(); }
+    BigInt(int n) { itov(n); }
+    BigInt(u n) { itov(n); }
+    BigInt(ll n) { itov(n); }
+    BigInt(ul n) { itov(n); }
+    BigInt(const V<u>& nums, bl neg) : nums(nums), neg(neg) {}
+    BigInt(const BigInt& other) : nums(other.nums), neg(other.neg) {}
+
+    size_t size() const { re sz(nums); }
+    bl is_neg() const { re neg; }
+    bl is_zero() const { re sz(nums) == 1 && !nums[0]; }
+
+    operator int() const { re vtoi<int>(); }
+    operator ll() const { re vtoi<ll>(); }
+    operator u() const { re vtoi<u>(); }
+    operator ul() const { re vtoi<ul>(); }
+    operator fl() const { re vtoi<fl>(); }
+    operator db() const { re vtoi<db>(); }
+    operator ld() const { re vtoi<ld>(); }
+
+    BigInt& operator=(const BigInt& other) {
+        nums = other.nums;
+        neg = other.neg;
+        re *this;
+    }
+
+    u operator[](size_t i) const { re nums[i]; }
+
+    bl operator==(const BigInt& other) const {
+        re neg == other.neg && nums == other.nums;
+    }
+
+    bl operator<(const BigInt& other) const {
+        if (neg != other.neg)
+            re neg > other.neg;
+        if (size() != other.size())
+            re size() < other.size();
+        f0rr(i,size())
+            if (nums[i] != other[i])
+                re nums[i] < other[i];
+        re 0;
+    }
+
+    bl operator==(int other) const {
+        re size() == 1 && neg == (other < 0) && nums[0] == abs(ll(other));
+    }
+
+    bl operator<(int other) const {
+        if (*this == other) re 0;
+        bl neg2 = other < 0;
+        if (neg != neg2) re neg > neg2;
+        ll num = neg2 ? -ll(other) : other;
+        re (size() == 1 && nums[0] < num) ^ neg;
+    }
+
+    bl operator>(const BigInt& other) const { re other < *this; }
+    bl operator!=(const BigInt& other) const { re !(*this == other); }
+    bl operator<=(const BigInt& other) const { re !(*this > other); }
+    bl operator>=(const BigInt& other) const { re !(*this < other); }
+
+    bl operator>(int other) const { re !(*this < other) && !(*this == other); }
+    bl operator!=(int other) const { re !(*this == other); }
+    bl operator<=(int other) const { re !(*this > other); }
+    bl operator>=(int other) const { re !(*this < other); }
+
+    BigInt operator-() const {
+        BigInt res(*this);
+        res.neg ^= 1;
+        res.check_zero();
+        re res;
+    }
+
+    friend BigInt abs(const BigInt& n) {
+        BigInt res(n);
+        res.neg = 0;
+        re res;
+    }
+
+    BigInt& operator+=(const BigInt& other) {
+        if (!neg && other.neg) {
+            BigInt b(other);
+            b.neg = 0;
+            re operator-=(b);
+        }
+        if (neg && !other.neg) {
+            BigInt a(*this);
+            a.neg = 0;
+            BigInt b(other);
+            b -= a;
+            re *this = b;
+        }
+        V<u> a,b;
+        make_same_len(other,a,b);
+        bl rest = 0;
+        nums.clear();
+        f0r(i,sz(a)) {
+            ul sum = ul(a[i]) + ul(b[i]) + ul(rest);
+            if (sum > ~u()) {
+                rest = 1;
+                sum -= ~u();
+            } else rest = 0;
+            nums.pb(sum);
+        }
+        if (rest) nums.pb(1);
+        check_zero();
+        re *this;
+    }
+
+    BigInt& operator-=(const BigInt& other) {
+        if (neg != other.neg) {
+            BigInt b(other);
+            b.neg ^= 1;
+            re operator+=(b);
+        }
+        if (*this == other) {
+            zero();
+            re *this;
+        }
+        V<u> a,b;
+        make_same_len(other,a,b);
+        bl less = *this < other;
+        if (less) swap(a,b);
+        bl rest = 0;
+        nums.clear();
+        f0r(i,sz(a)) {
+            nums.pb(a[i] - b[i] - rest);
+            rest = ul(a[i]) < ul(b[i] + rest);
+        }
+        remove_leading_zeros();
+        neg ^= less;
+        check_zero();
+        re *this;
+    }
+
+    BigInt& operator*=(const BigInt& other) {
+        V<u> a = nums;
+        V<u> b = other.nums;
+        nums.assign(sz(a)+sz(b), 0);
+        f0r(i,sz(a)) {
+            u carry = 0;
+            for (int j = 0; j < sz(b) || carry; ++j) {
+                ul cur = nums[i+j] + ul(a[i]) * ul(j < sz(b) ? b[j] : 0) + carry;
+                nums[i+j] = cur;
+                carry = cur > ~u() ? cur /= (ul(~u())+ul(1)) : 0;
+            }
+        }
+        remove_leading_zeros();
+        neg ^= other.neg;
+        check_zero();
+        re *this;
+    }
+
+    P<BigInt,BigInt> divide_with_remainder(const BigInt& other) {
+        if (other.is_zero()) throw_divide_by_zero_exception();
+        if (is_zero()) re mp(BigInt{0},BigInt{0});
+        if (nums == other.nums) re mp(BigInt{(neg ^ other.neg) ? -1 : 1}, BigInt{0});
+        int i, lgcat = 0;
+        u cc;
+        V<u> cat(size(), 0);
+        BigInt r;
+        BigInt base(ul(~u())+ul(1));
+        BigInt b(other);
+        b.neg = 0;
+        for (i = size()-1; r * base + BigInt(nums[i]) < b; --i){
+            r *= base;
+            r += nums[i];
+        }
+        for (; i >= 0; --i) {
+            r = r * base + BigInt(nums[i]);
+            cc = ~u();
+            if (BigInt(cc) * b > r)
+                cc = bin_search<ul>(0, ~u(), [&](ul cc) { re BigInt(cc) * b > r; }) - 1;
+            r -= BigInt(cc) * b;
+            cat[lgcat++] = cc;
+        }
+        BigInt n(*this);
+        n.nums.resize(sz(cat));
+        for (i = 0; i < lgcat; ++i)
+            n.nums[i] = cat[lgcat - i - 1];
+        n.nums.resize(lgcat);
+        if (!lgcat) n.zero();
+        else n.neg ^= other.neg;
+        if (n.size() == 1 && !n.nums[0]) n.neg = 0;
+        if (r.size() == 1 && !r.nums[0]) r.neg = 0;
+        else r.neg ^= other.neg;
+        n.check_zero();
+        r.check_zero();
+        re mp(n,r);
+    }
+
+    BigInt& operator/=(const BigInt& other) {
+        re *this = divide_with_remainder(other).fi;
+    }
+
+    BigInt& operator%=(const BigInt& other) {
+        re *this = divide_with_remainder(other).se;
+    }
+
+    BigInt operator+(const BigInt& other) const { re BigInt(*this) += other; }
+    BigInt operator-(const BigInt& other) const { re BigInt(*this) -= other; }
+    BigInt operator*(const BigInt& other) const { re BigInt(*this) *= other; }
+    BigInt operator/(const BigInt& other) const { re BigInt(*this) /= other; }
+    BigInt operator%(const BigInt& other) const { re BigInt(*this) %= other; }
+
+    operator str() const {
+        str s;
+        BigInt n(*this);
+        int i = 0;
+        do {
+            s += (n % BigInt(10)).nums[0] + '0';
+            n /= BigInt(10);
+        } while (!n.is_zero());
+        if (neg) s += '-';
+        reverse(all(s));
+        re s;
+    }
+
+    friend ostream& operator<<(ostream& out, const BigInt& n) {
+        re out << str(n);
+    }
+};
+
+// Rational number
+class Rational {
+private:
+    BigInt n, d;
+
+    void reduce() {
+        if (d.is_zero()) throw_divide_by_zero_exception();
+        BigInt g = __gcd<BigInt>(n,d);
+        n /= g;
+        d /= g;
+        if (d.is_neg()) {
+            n = -n;
+            d = -d;
+        }
+    }
+
+    str to_str(size_t precision) {
+        auto x = n.is_neg() ? -n : n;
+        str s = (n.is_neg() ? "-" : "") + str(x/d);
+        x = x%d;
+        if (x.is_zero()) re s;
+        BigInt m(1);
+        f0r(i,precision) m *= 10;
+        x *= m;
+        str r = x/d;
+        reverse(all(r));
+        while (sz(r) < precision)
+            r += '0';
+        reverse(all(r));
+        s += "." + r;
+        re s;
+    }
+
+public:
+    Rational() : n(0), d(1) {}
+    Rational(ll n) : n(n), d(1) {}
+    Rational(ll n, ll d) : n(n), d(d) { reduce(); }
+    Rational(const BigInt& n) : n(n), d(1) {}
+    Rational(const BigInt& n, const BigInt& d) : n(n), d(d) { reduce(); }
+
+    BigInt numerator() const { re n; }
+    BigInt denominator() const { re d; }
+
+    operator fl() { re stof(to_str(numeric_limits<fl>::digits10 + 1)); }
+    operator db() { re stod(to_str(numeric_limits<db>::digits10 + 1)); }
+    operator ld() { re stold(to_str(numeric_limits<ld>::digits10 + 1)); }
+
+    Rational operator-() const { re Rational{-n,d}; }
+
+    Rational operator+(const Rational& other) const {
+        BigInt g = __gcd<BigInt>(d,other.d);
+        re Rational{n/g*other.d + other.n/g*d, d/g*other.d};
+    }
+
+    Rational operator-(const Rational& other) const {
+        BigInt g = __gcd(d,other.d);
+        re Rational{n/g*other.d - other.n/g*d, d/g*other.d};
+    }
+
+    Rational operator*(const Rational& other) const {
+        re Rational{n*other.n, d*other.d};
+    }
+
+    Rational operator/(const Rational& other) const {
+        re Rational{n*other.d, d*other.n};
+    }
+
+    Rational& operator+=(const Rational& other) { re *this = *this + other; }
+    Rational& operator-=(const Rational& other) { re *this = *this - other; }
+    Rational& operator*=(const Rational& other) { re *this = *this * other; }
+    Rational& operator/=(const Rational& other) { re *this = *this / other; }
+
+    bl operator==(const Rational& other) const {
+        re n == other.n && d == other.d;
+    }
+
+    bl operator<(const Rational& other) const {
+        if (d == other.d)
+            re n < other.n;
+        if (other.n.is_zero())
+            re n.is_neg();
+        if (n.is_zero())
+            re !other.n.is_neg();
+        re (*this + other).n.is_neg();
+    }
+
+    bl operator>(const Rational& other) const { re other < *this; }
+    bl operator!=(const Rational& other) const { re !(*this == other); }
+    bl operator<=(const Rational& other) const { re !(*this > other); }
+    bl operator>=(const Rational& other) const { re !(*this < other); }
+
+    friend ostream& operator<<(ostream& out, const Rational& x) {
+        re out << x.n << '/' << x.d;
+    }
+};
+
 // Disjoint Set Union
 class DSU {
 private:
@@ -1353,31 +1731,15 @@ int main() {
     auto finish = now();
     cout << "\nWorking time: " << (int)round((finish - start) / 1e6) << "ms";
     #endif
-    re 0;
+    re _exit_code;
 }
 
 // #define TEST
-void _settings() {
-    #ifdef TEST
-    _test();
-    #endif
-    _fastio = 1;
-    _multitest = 0;
-    #ifdef LOCAL
-    static char input[] = "input.txt";
-    static char output[] = "";
-    #else
-    static char input[] = "";
-    static char output[] = "";
-    #endif
-    _input = input;
-    _output = output;
-}
-
 #ifdef TEST
-auto slow(/*input*/);
-auto fast(/*input*/);
-void out(auto&);
+// move defines input_args, input_vars, output before define TEST if needed
+output slow(input_args); // slow but 100% correct solution
+output fast(input_args); // fast but not sure if it's a correct solution
+void out(const output&);
 
 void copy(str s) {
     auto glob = GlobalAlloc(GMEM_FIXED, sz(s)+1);
@@ -1388,29 +1750,43 @@ void copy(str s) {
     CloseClipboard();
 }
 
-bl check(auto& ans1, auto& ans2/*, input*/) {
+bl check(const output& ans1, const output& ans2/*, input_vars*/) {
     /* check if ans2 is a correct answer if one of the correct answers is ans1 */
     re ans1 == ans2;
 }
 
 void _test() {
-    const uint64_t SECONDS = 5;
+    const uint64_t TEST_TIME_SECONDS = 5;
+    const uint64_t TIME_LIMIT_MILLISECONDS = 0;
     auto _start = now();
     int _count;
-    for (_count = 0; now() - _start < 1000000000*SECONDS; ++_count) {
+    for (_count = 0; now() - _start < 1000000000*TEST_TIME_SECONDS; ++_count) {
         /* generate input */
-        auto ans1 = slow(/*input*/);
-        auto ans2 = fast(/*input*/);
-        if (check(ans1, ans2/*, input*/)) continue;
-        cout << "Wrong answer on test " << _count+1 << '\n';
+        output ans1 = slow(input_vars);
+        output ans2;
+        bl _tle = 0;
+        if (TIME_LIMIT_MILLISECONDS) {
+            promise<output> _p;
+            future<output> _f = _p.get_future();
+            thread([&]{ _p.set_value(fast(input_vars)); }).detach();
+            if (_tle = (_f.wait_for(chrono::milliseconds(TIME_LIMIT_MILLISECONDS)) != future_status::ready))
+                cout << "Time limit exceeded on test " << _count+1 << '\n';
+            else ans2 = _f.get();
+        } else ans2 = fast(input_vars);
+        if (!_tle) {
+            if (check(ans1, ans2/*, input_vars*/)) continue;
+            cout << "Wrong answer on test " << _count+1 << '\n';
+        }
         cout << "\n============ INPUT =============\n";
-        stringstream ss;
+        sstr ss;
+        if (_multitest) ss << "1\n";
         /* print input to stringstream */
-        str str = ss.str();
-        copy(str);
-        cout << str;
+        str _str = ss.str();
+        copy(_str);
+        cout << _str;
         cout << "\n======== CORRECT ANSWER ========\n";
         out(ans1);
+        if (_tle) exit(1);
         cout << "\n========= WRONG ANSWER =========\n";
         out(ans2);
         exit(1);
@@ -1420,22 +1796,43 @@ void _test() {
 }
 #endif
 
-auto slow(/*input*/) {
-    re 0;
+void _settings() {
+    #ifdef TEST
+    _test();
+    #endif
+    _fastio = 1;
+    _multitest = 0;
+    #ifdef LOCAL
+    static char input_[] = "input.txt";
+    static char output_[] = "";
+    #else
+    static char input_[] = "";
+    static char output_[] = "";
+    #endif
+    _input = input_;
+    _output = output_;
 }
 
 /// ================ ACTUAL CODE STARTS HERE ================ ///
 
-void out(auto& ans) {
+#define input_args 
+#define input_vars 
+#define output auto
+
+void out(const output& ans) {
     cout << ans << '\n';
 }
 
-auto fast(/*input*/) {
+output slow(input_args) {
+    re 0;
+}
+
+output fast(input_args) {
     re 0;
 }
 
 void _solve() {
     /* get input */
-    auto ans = fast(/*input*/);
+    auto ans = fast(input_vars);
     out(ans);
 }

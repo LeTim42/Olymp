@@ -136,7 +136,6 @@ private:
                 f.words.emplace_back(tokens[i].value);
             ++i;
         }
-        f.words.pop_back();
         if (tokens[i].value == "{") {
             size_t count = 1;
             for (++i; count; ++i) {
@@ -281,7 +280,8 @@ private:
                             vars_buffer.emplace_back(words_buffer.back());
                             words_buffer.pop_back();
                         }
-                        if (value == "=") eq = true;
+                        std::string S = "=!+-*/%";
+                        if (value == "=" && find(S.begin(), S.end(), tokens[i-1].value[0]) == S.end()) eq = true;
                         else if (value == "," && !brackets) eq = false;
                         else if (value == ";") brackets = 0;
                     } else if (value == "{")
