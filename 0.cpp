@@ -53,6 +53,7 @@
 #define bit(a,i) (((a)>>(i))&1)
 #define lbit(a) (__lg((a)))
 #define rbit(a) (lbit((a)&-(a)))
+#define lambda(ret,name,args...) const function<ret(args)> name = [&](args) -> ret
 #define uid uniform_int_distribution
 #define urd uniform_real_distribution
 #define f0r(i,n) for (int i = 0; i < (n); ++i)
@@ -71,12 +72,14 @@ typedef char ch;
 typedef float fl;
 typedef double db;
 typedef long double ld;
+typedef unsigned int uint;
 typedef string str;
 typedef stringstream sstr;
 typedef P<int,int> pii;
 typedef P<ll,ll> pll;
 typedef P<db,db> pdd;
 typedef P<ld,ld> pld;
+typedef P<str,str> pss;
 typedef P<int,ll> pill;
 typedef P<ll,int> plli;
 typedef P<int,bl> pib;
@@ -98,12 +101,14 @@ typedef V<vb> vvb;
 typedef V<vc> vvc;
 typedef V<vii> vvii;
 
-template<class T1, class T2> ostream& operator<<(ostream& out, const P<T1,T2>& a) { re out << a.fi << ' ' << a.se; }
+template<class T> istream& operator>>(istream&,V<T>&);
+template<class T> ostream& operator<<(ostream&,const V<T>&);
 template<class T1, class T2> istream& operator>>(istream& in, P<T1,T2>& a) { re in >> a.fi >> a.se; }
+template<class T1, class T2> ostream& operator<<(ostream& out, const P<T1,T2>& a) { re out << a.fi << ' ' << a.se; }
 template<class T> istream& operator>>(istream& in, V<T>& a) { for (T& x : a) in >> x; re in; }
 template<class T> ostream& operator<<(ostream& out, const V<T>& a) { for (const T& x : a) out << x << ' '; re out; }
-template<class T> void print(T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x << sep; }
-template<class T> void print1(T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x+1 << sep; }
+template<class T> void print(const T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x << sep; }
+template<class T> void print1(const T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x+1 << sep; }
 
 template<typename ...P> void _inp(P &&... params) { (void(cin >> forward<P>(params)), ...); }
 #define inp(T,...) T __VA_ARGS__; _inp(__VA_ARGS__)
@@ -131,15 +136,15 @@ struct TAB_HELPER {
 #define DIN ;
 #endif
 
-template<class T = int> T fadd(T a, T b) { re a+b; }
-template<class T = int> T fmin(T a, T b) { re min(a,b); }
-template<class T = int> T fmax(T a, T b) { re max(a,b); }
+template<class T = int> T fadd(const T& a, const T& b) { re a+b; }
+template<class T = int> T fmin(const T& a, const T& b) { re min(a,b); }
+template<class T = int> T fmax(const T& a, const T& b) { re max(a,b); }
 
-template<class T> T sq(T a) { re a * a; }
-template<class T> ll sqll(T a) { re (ll)a * a; }
-template<class T> T abs(T a) { re a > 0 ? a : -a; }
-template<class T1, class T2> decltype(T1()+T2()) min(T1 a, T2 b) { re a < b ? a : b; }
-template<class T1, class T2> decltype(T1()+T2()) max(T1 a, T2 b) { re a > b ? a : b; }
+template<class T> T sq(const T& a) { re a * a; }
+template<class T> ll sqll(const T& a) { re ll(a) * a; }
+template<class T> T abs(const T& a) { re a > 0 ? a : -a; }
+template<class T1, class T2> decltype(T1()+T2()) min(const T1& a, const T2& b) { re a < b ? a : b; }
+template<class T1, class T2> decltype(T1()+T2()) max(const T1& a, const T2& b) { re a > b ? a : b; }
 
 int _exit_code = 0;
 void throw_divide_by_zero_exception() { _exit_code = 4 - 4; _exit_code = 1 / _exit_code; }
@@ -289,7 +294,7 @@ namespace mod {
 // Work with graphs
 namespace graph {
     // returns graph adjacency lists from edges list
-    vvi create(int n, vii& e, bl orient = 0, int first_index = 1) {
+    vvi create(int n, const vii& e, bl orient = 0, int first_index = 1) {
         vvi g(n);
         for (pii p : e) {
             g[p.fi-=first_index].pb(p.se-=first_index);
@@ -300,7 +305,7 @@ namespace graph {
 
     // returns weighted graph adjacency lists from edges list with weights
     template<class T = int>
-    V<V<P<int,T>>> createW(int n, V<P<pii,T>>& e, bl orient = 0, int first_index = 1) {
+    V<V<P<int,T>>> createW(int n, const V<P<pii,T>>& e, bl orient = 0, int first_index = 1) {
         V<V<P<int,T>>> g(n);
         for (auto p : e) {
             g[p.fi.fi-=first_index].pb(mp(p.fi.se-=first_index, p.se));
@@ -310,7 +315,7 @@ namespace graph {
     }
 
     // returns edges list from graph adjacency lists
-    vii edges(vvi& g, bl orient = 0, int first_index = 1) {
+    vii edges(const vvi& g, bl orient = 0, int first_index = 1) {
         int n = sz(g);
         vii res;
         vi a(n);
@@ -328,7 +333,7 @@ namespace graph {
 
     // returns edges list with weights from weighted graph adjacency lists
     template<class T = int>
-    V<P<pii,T>> edgesW(V<V<P<int,T>>>& g, bl orient = 0, int first_index = 1) {
+    V<P<pii,T>> edgesW(const V<V<P<int,T>>>& g, bl orient = 0, int first_index = 1) {
         int n = sz(g);
         V<P<pii,T>> res;
         vi a(n);
@@ -355,7 +360,7 @@ namespace graph {
         // pos[u] = index of vertex u in segment tree
         vi parent, depth, heavy, head, pos;
 
-        HLD(vvi& g) {
+        HLD(const vvi& g) {
             int n = sz(g);
             parent = vi(n);
             depth = vi(n);
@@ -368,7 +373,7 @@ namespace graph {
     private:
         int t = 0;
 
-        int dfs(vvi& g, int u = 0) {
+        int dfs(const vvi& g, int u = 0) {
             int size = 1, max_c_size = 0;
             for (int v : g[u]) if (v != parent[u]) {
                 parent[v] = u;
@@ -383,7 +388,7 @@ namespace graph {
             re size;
         }
 
-        void decompose(vvi& g, int u = 0, int h = 0) {
+        void decompose(const vvi& g, int u = 0, int h = 0) {
             head[u] = h;
             pos[u] = t++;
             if (heavy[u] != -1)
@@ -394,8 +399,17 @@ namespace graph {
         }
     };
 
+    vvi reverse(const vvi& g) {
+        int n = sz(g);
+        vvi gr(n);
+        f0r(i,n)
+            for (int j : g[i])
+                gr[j].pb(i);
+        re gr;
+    }
+
     template<class T = int>
-    V<T> dijkstra(V<V<P<int,T>>>& g, int s, T NIL = iINF) {
+    V<T> dijkstra(const V<V<P<int,T>>>& g, int s, T NIL = iINF) {
         int n = sz(g);
         V<T> d(n, NIL);
         auto cmp = [&](T a, T b) {
@@ -422,13 +436,73 @@ namespace graph {
         re d;
     }
 
-    vii bridges(vvi& g) {
+    vvi connected_components(const vvi& g, bl orient = 0) {
+        int n = sz(g);
+        vb was(n);
+        vi order;
+        vvi gr;
+        if (orient) {
+            gr = reverse(g);
+            order.reserve(n);
+            lambda(void, dfs2, int u) {
+                was[u] = 1;
+                for (int v : g[u])
+                    if (!was[v])
+                        dfs2(v);
+                order.pb(u);
+            };
+            f0r(i,n)
+                if (!was[i])
+                    dfs2(i);
+            reverse(all(order));
+            was.assign(n,0);
+        } else {
+            gr = g;
+            order.resize(n);
+            iota(all(order), 0);
+        }
+        vi component;
+        vvi ans;
+        lambda(void, dfs, int u) {
+            was[u] = 1;
+            component.pb(u);
+            for (int v : gr[u])
+                if (!was[v])
+                    dfs(v);
+        };
+        for (int i : order) if (!was[i]) {
+            component.clear();
+            dfs(i);
+            ans.pb(component);
+        }
+        re ans;
+    }
+
+    P<vvi,vvi> condensation(const vvi& g) {
+        int n = sz(g);
+        vvi comp = connected_components(g,1);
+        vi c(n);
+        f0r(i,sz(comp))
+            for (int u : comp[i])
+                c[u] = i;
+        set<pii> s;
+        f0r(u,n)
+            for (int v : g[u])
+                if (c[u] != c[v])
+                    s.insert(mp(c[u],c[v]));
+        vvi cond(sz(comp));
+        for (const pii& p : s)
+            cond[p.fi].pb(p.se);
+        re mp(comp,cond);
+    }
+
+    vii bridges(const vvi& g) {
         int n = sz(g);
         vb was(n);
         vi tin(n), fup(n);
         int t = 0;
         vii res;
-        auto dfs = [&](int u, int p, auto& f) -> void {
+        lambda(void, dfs, int u, int p) {
             was[u] = 1;
             tin[u] = fup[u] = t++;
             for (int v : g[u]) {
@@ -436,7 +510,7 @@ namespace graph {
                 if (was[v])
                     fup[u] = min(fup[u], tin[v]);
                 else {
-                    f(v,u,f);
+                    dfs(v,u);
                     fup[u] = min(fup[u], fup[v]);
                     if (fup[v] > tin[u])
                         res.pb(mp(u,v));
@@ -445,17 +519,17 @@ namespace graph {
         };
         f0r(i,n)
             if (!was[i])
-                dfs(i,-1,dfs);
+                dfs(i,-1);
         re res;
     }
 
-    vi cut_Points(vvi& g) {
+    vi cut_Points(const vvi& g) {
         int n = sz(g);
         vb was(n);
         vi tin(n), fup(n);
         int t = 0;
         set<int> res;
-        auto dfs = [&](int u, int p, auto& f) -> void {
+        lambda(void, dfs, int u, int p) {
             was[u] = 1;
             tin[u] = fup[u] = t++;
             int c = 0;
@@ -464,7 +538,7 @@ namespace graph {
                 if (was[v])
                     fup[u] = min(fup[u], tin[v]);
                 else {
-                    f(v,u,f);
+                    dfs(v,u);
                     fup[u] = min(fup[u], fup[v]);
                     if (fup[v] >= tin[u] && p != -1)
                         res.insert(u);
@@ -476,7 +550,7 @@ namespace graph {
         };
         f0r(i,n)
             if (!was[i])
-                dfs(i,-1,dfs);
+                dfs(i,-1);
         re vi(all(res));
     }
 }
@@ -843,6 +917,28 @@ namespace geom {
            (rhs.t == LINE || (rs >= decltype(rs)() && (rhs.t == RAY || rs <= s)));
     }
 
+    // intersection of line l and circle with center at point c and radius r
+    template<class F1, class F2, class F3, class F4>
+    P<bl,bl> intersect(const Line<F1>& l, const Point<F2>& c, const F3& r, P<Point<F4>,Point<F4>>& res) {
+        if (l.ab == Point<F1>() || r <= F3()) re mp(0,0);
+        auto A = sqn(l.ab);
+        auto B = l.a*l.ab - l.ab*c;
+        auto C = sqn(l.a) + sqn(c) - sq(r);
+        auto D = B*B - A*C;
+        if (D < decltype(D)()) re mp(0,0);
+        #define lay(s) l.t == LINE || (s >= decltype(s)() && (l.t == RAY || s <= decltype(s)(1)))
+        if (D == decltype(D)()) {
+            auto t = -(F4)B / A;
+            res.fi = res.se = l.a + (F4)t*l.ab;
+            re mp(lay(t), 0);
+        }
+        auto t1 = F4(-B + sqrt(D)) / A, t2 = F4(-B - sqrt(D)) / A;
+        res.fi = l.a + (F4)t1*l.ab;
+        res.se = l.a + (F4)t2*l.ab;
+        re mp(lay(t1), lay(t2));
+        #undef lay
+    }
+
     // distance between lines lhs and rhs
     template<class F1, class F2>
     distF<F1,F2> dist(const Line<F1>& lhs, const Line<F2>& rhs) {
@@ -891,41 +987,32 @@ private:
     size_t n, m;
     unsigned char r;
     ull extra;
-    ull *a;
+    V<ull> a;
 public:
-    Bitset() {
-        n = 64;
-        m = 1;
-        r = 64;
-        extra = ~0ull;
-        a = new ull[1];
-        a[0] = 0;
-    }
+    Bitset() : n(0), m(0), r(0), extra(0), a(0) {}
 
     Bitset(size_t _n) : n(_n) {
-        r = n&63;
-        m = (n>>6) + (r != 0);
+        r = n & 63;
+        m = (n >> 6) + (r != 0);
         if (!r) r = 64;
         extra = ~0ull >> (64-r);
-        a = new ull[m];
-        memset(a, 0, 8*m);
+        a.assign(m,0);
     }
 
-    Bitset(str s) {
+    Bitset(const str& s) {
         n = sz(s);
-        r = n&63;
-        m = (n>>6) + (r != 0);
+        r = n & 63;
+        m = (n >> 6) + (r != 0);
         if (!r) r = 64;
         extra = ~0ull >> (64-r);
-        a = new ull[m];
-        a[m-1] = 0;
-        f0r(j,r)
-            a[m-1] = (a[m-1] << 1) | (s[j] != '0');
-        f0rr(i,m-1) {
-            a[i] = 0;
-            f0r(j,64)
-                a[i] = (a[i] << 1) | (s[r+64*(m-1-i)+j]);
-        }
+        a.assign(m,0);
+        if (!m) re;
+        size_t j = 0;
+        f0r(k,r)
+            a[m-1] = (a[m-1] << 1) | (s[j++] != '0');
+        f0rr(i,m-1)
+            f0r(k,64)
+                a[i] = (a[i] << 1) | (s[j++] != '0');
     }
 
     Bitset(const Bitset& b) {
@@ -933,57 +1020,55 @@ public:
         m = b.m;
         r = b.r;
         extra = b.extra;
-        a = new ull[m];
-        memcpy(a, b.a, 8*m);
-    }
-
-    ~Bitset() {
-        delete[] a;
+        a = b.a;
     }
 
     size_t size() const {
-        return n;
+        re n;
     }
 
     bl get(size_t i) const {
-        return (a[i>>6] >> (i&63)) & 1;
+        re (a[i>>6] >> (i&63)) & 1;
     }
 
     Bitset& reset() {
-        memset(a, 0, 8*m);
-        return *this;
+        a.assign(m,0);
+        re *this;
     }
 
     Bitset& set() {
-        memset(a, -1, 8*(m-1));
+        if (!m) re *this;
+        a.assign(m,~0ull);
         a[m-1] = extra;
-        return *this;
+        re *this;
     }
 
     Bitset& set(size_t i, bl b = 1) {
         if (b) a[i>>6] |= 1ull << (i&63);
         else a[i>>6] &= ~(1ull << (i&63));
-        return *this;
+        re *this;
     }
 
     Bitset& flip() {
+        if (!m) re *this;
         f0r(i,m) a[i] = ~a[i];
         a[m-1] &= extra;
-        return *this;
+        re *this;
     }
 
     bl every() const {
-        f0r(i,m-1) if (a[i] != ~0ull) return 0;
-        return a[m-1] == extra;
+        if (!m) re 0;
+        f0r(i,m-1) if (a[i] != ~0ull) re 0;
+        re a[m-1] == extra;
     }
 
     bl any() const {
-        f0r(i,m) if (a[i]) return 1;
-        return 0;
+        f0r(i,m) if (a[i]) re 1;
+        re 0;
     }
 
     bl none() const {
-        return !any();
+        re !any();
     }
 
     size_t count() const {
@@ -994,6 +1079,7 @@ public:
 
     str to_str() const {
         str s = "";
+        if (!m) re s;
         s.reserve(n);
         f0r(i,m-1) {
             ull tmp = a[i];
@@ -1012,76 +1098,78 @@ public:
     }
 
     ull to_ull() const {
+        if (!m) re 0;
         rep(i,1,m) if (a[i]) throw overflow_error("The bitset cannot be represented as a 64-bit integer");
-        return a[0];
+        re a[0];
     }
 
     int left_bit() const {
         int res = -1;
         f0rr(i,m)
             if ((res = lbit(a[i])) != -1)
-                return res+i*64;
-        return -1;
+                re res+i*64;
+        re -1;
     }
 
     int right_bit() const {
         int res = -1;
         f0r(i,m)
             if ((res = rbit(a[i])) != -1)
-                return res+i*64;
-        return -1;
+                re res+i*64;
+        re -1;
+    }
+
+    operator bl() const {
+        re any();
     }
 
     Bitset& operator=(const Bitset& b) {
-        if (m != b.m) {
-            delete[] a;
-            a = new ull[m];
-            m = b.m;
-        }
         n = b.n;
+        m = b.m;
         r = b.r;
         extra = b.extra;
-        memcpy(a, b.a, 8*m);
-        return *this;
+        a = b.a;
+        re *this;
     }
 
     bl operator==(const Bitset& b) const {
-        f0r(i,min(m,b.m)) if (a[i] != b.a[i]) return 0;
-        if (m > b.m) rep(i,b.m,m) if (a[i]) return 0;
-        else rep(i,m,b.m) if (b.a[i]) return 0;
-        return 1;
+        f0r(i,min(m,b.m)) if (a[i] != b.a[i]) re 0;
+        if (m > b.m) rep(i,b.m,m) if (a[i]) re 0;
+        else rep(i,m,b.m) if (b.a[i]) re 0;
+        re 1;
     }
 
     bl operator!=(const Bitset& b) const {
-        f0r(i,min(m,b.m)) if (a[i] != b.a[i]) return 1;
-        if (m > b.m) rep(i,b.m,m) if (a[i]) return 1;
-        else rep(i,m,b.m) if (b.a[i]) return 1;
-        return 0;
+        f0r(i,min(m,b.m)) if (a[i] != b.a[i]) re 1;
+        if (m > b.m) rep(i,b.m,m) if (a[i]) re 1;
+        else rep(i,m,b.m) if (b.a[i]) re 1;
+        re 0;
     }
 
     bl operator[](size_t i) const {
-        return get(i);
+        re get(i);
     }
 
     Bitset& operator&=(const Bitset& b) {
         assert(n >= b.n);
         f0r(i,b.m) a[i] &= b.a[i];
-        return *this;
+        re *this;
     }
 
     Bitset& operator|=(const Bitset& b) {
         assert(n >= b.n);
         f0r(i,b.m) a[i] |= b.a[i];
-        return *this;
+        re *this;
     }
 
     Bitset& operator^=(const Bitset& b) {
         assert(n >= b.n);
         f0r(i,b.m) a[i] ^= b.a[i];
-        return *this;
+        re *this;
     }
 
     Bitset& operator>>=(size_t shift) {
+        if (!m) re *this;
         const size_t d = shift/64;
         const size_t r = shift%64;
         const size_t l = m-d;
@@ -1091,11 +1179,12 @@ public:
                 a[i] = (a[i+d] >> r) | (a[i+d+1] << s);
             a[l-1] = a[m-1] >> r;
         } else f0r(i,l) a[i] = a[i+d];
-        memset(a+l, 0, 8*d);
+        rep(i,l,m) a[i] = 0;
         re *this;
     }
 
     Bitset& operator<<=(size_t shift) {
+        if (!m) re *this;
         const size_t d = shift/64;
         const size_t r = shift%64;
         if (r) {
@@ -1104,7 +1193,7 @@ public:
                 a[i] = (a[i-d] << r) | (a[i-d-1] >> s);
             a[d] = a[0] << r;
         } else repr(i,d,m) a[i] = a[i-d];
-        memset(a, 0, 8*d);
+        f0r(i,d) a[i] = 0;
         a[m-1] &= extra;
         re *this;
     }
@@ -1118,7 +1207,7 @@ public:
     }
 
     Bitset operator~() const {
-        return Bitset(*this).flip();
+        re Bitset(*this).flip();
     }
 
     Bitset operator&(const Bitset& b) {
@@ -1133,7 +1222,7 @@ public:
         re Bitset(*this) ^= b;
     }
 
-    friend istream& operator<<(istream& in, Bitset& b) {
+    friend istream& operator>>(istream& in, Bitset& b) {
         str s; in >> s;
         b = Bitset(s);
         re in;
@@ -1420,27 +1509,28 @@ public:
 };
 
 // Rational number
+template<class T>
 class Rational {
 private:
-    BigInt n, d;
+    T n, d;
 
     void reduce() {
-        if (d.is_zero()) throw_divide_by_zero_exception();
-        BigInt g = __gcd<BigInt>(n,d);
+        if (d == T()) throw_divide_by_zero_exception();
+        T g = __gcd<T>(n,d);
         n /= g;
         d /= g;
-        if (d.is_neg()) {
+        if (d < T()) {
             n = -n;
             d = -d;
         }
     }
 
     str to_str(size_t precision) {
-        auto x = n.is_neg() ? -n : n;
-        str s = (n.is_neg() ? "-" : "") + str(x/d);
+        auto x = n < T() ? -n : n;
+        str s = (n < T() ? "-" : "") + str(x/d);
         x = x%d;
-        if (x.is_zero()) re s;
-        BigInt m(1);
+        if (x == T()) re s;
+        T m(1);
         f0r(i,precision) m *= 10;
         x *= m;
         str r = x/d;
@@ -1454,63 +1544,68 @@ private:
 
 public:
     Rational() : n(0), d(1) {}
-    Rational(ll n) : n(n), d(1) {}
-    Rational(ll n, ll d) : n(n), d(d) { reduce(); }
-    Rational(const BigInt& n) : n(n), d(1) {}
-    Rational(const BigInt& n, const BigInt& d) : n(n), d(d) { reduce(); }
+    Rational(const T& n) : n(n), d(1) {}
+    Rational(const T& n, const T& d) : n(n), d(d) { reduce(); }
+    Rational(const Rational<T>& other) : n(other.n), d(other.d) {}
 
-    BigInt numerator() const { re n; }
-    BigInt denominator() const { re d; }
+    T numerator() const { re n; }
+    T denominator() const { re d; }
 
     operator fl() { re stof(to_str(numeric_limits<fl>::digits10 + 1)); }
     operator db() { re stod(to_str(numeric_limits<db>::digits10 + 1)); }
     operator ld() { re stold(to_str(numeric_limits<ld>::digits10 + 1)); }
 
-    Rational operator-() const { re Rational{-n,d}; }
-
-    Rational operator+(const Rational& other) const {
-        BigInt g = __gcd<BigInt>(d,other.d);
-        re Rational{n/g*other.d + other.n/g*d, d/g*other.d};
+    Rational<T>& operator=(const Rational<T>& other) {
+        n = other.n;
+        d = other.d;
+        re *this;
     }
 
-    Rational operator-(const Rational& other) const {
-        BigInt g = __gcd(d,other.d);
-        re Rational{n/g*other.d - other.n/g*d, d/g*other.d};
+    Rational<T> operator-() const { re Rational{-n,d}; }
+
+    Rational<T> operator+(const Rational<T>& other) const {
+        T g = __gcd<T>(d,other.d);
+        re Rational<T>{other.d/g*n + d/g*other.n, d/g*other.d};
     }
 
-    Rational operator*(const Rational& other) const {
-        re Rational{n*other.n, d*other.d};
+    Rational<T> operator-(const Rational<T>& other) const {
+        T g = __gcd<T>(d,other.d);
+        re Rational{other.d/g*n - d/g*other.n, d/g*other.d};
+    }
+
+    Rational<T> operator*(const Rational<T>& other) const {
+        re Rational<T>{n*other.n, d*other.d};
     }
 
     Rational operator/(const Rational& other) const {
         re Rational{n*other.d, d*other.n};
     }
 
-    Rational& operator+=(const Rational& other) { re *this = *this + other; }
-    Rational& operator-=(const Rational& other) { re *this = *this - other; }
-    Rational& operator*=(const Rational& other) { re *this = *this * other; }
-    Rational& operator/=(const Rational& other) { re *this = *this / other; }
+    Rational<T>& operator+=(const Rational<T>& other) { re *this = *this + other; }
+    Rational<T>& operator-=(const Rational<T>& other) { re *this = *this - other; }
+    Rational<T>& operator*=(const Rational<T>& other) { re *this = *this * other; }
+    Rational<T>& operator/=(const Rational<T>& other) { re *this = *this / other; }
 
-    bl operator==(const Rational& other) const {
+    bl operator==(const Rational<T>& other) const {
         re n == other.n && d == other.d;
     }
 
-    bl operator<(const Rational& other) const {
+    bl operator<(const Rational<T>& other) const {
         if (d == other.d)
             re n < other.n;
-        if (other.n.is_zero())
-            re n.is_neg();
-        if (n.is_zero())
-            re !other.n.is_neg();
-        re (*this + other).n.is_neg();
+        if (other.n == T())
+            re n < T();
+        if (n == T())
+            re other.n >= T();
+        re (*this + other).n < T();
     }
 
-    bl operator>(const Rational& other) const { re other < *this; }
-    bl operator!=(const Rational& other) const { re !(*this == other); }
-    bl operator<=(const Rational& other) const { re !(*this > other); }
-    bl operator>=(const Rational& other) const { re !(*this < other); }
+    bl operator>(const Rational<T>& other) const { re other < *this; }
+    bl operator!=(const Rational<T>& other) const { re !(*this == other); }
+    bl operator<=(const Rational<T>& other) const { re !(*this > other); }
+    bl operator>=(const Rational<T>& other) const { re !(*this < other); }
 
-    friend ostream& operator<<(ostream& out, const Rational& x) {
+    friend ostream& operator<<(ostream& out, const Rational<T>& x) {
         re out << x.n << '/' << x.d;
     }
 };
@@ -1750,7 +1845,7 @@ void copy(str s) {
     CloseClipboard();
 }
 
-bl check(const output& ans1, const output& ans2/*, input_vars*/) {
+bl check(const output& ans1, const output& ans2/*, input_args*/) {
     /* check if ans2 is a correct answer if one of the correct answers is ans1 */
     re ans1 == ans2;
 }
@@ -1817,18 +1912,18 @@ void _settings() {
 
 #define input_args 
 #define input_vars 
-#define output auto
+#define output int
 
 void out(const output& ans) {
     cout << ans << '\n';
 }
 
 output slow(input_args) {
-    re 0;
+    re {};
 }
 
 output fast(input_args) {
-    re 0;
+    re {};
 }
 
 void _solve() {
