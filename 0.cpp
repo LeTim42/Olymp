@@ -161,7 +161,7 @@ uint64_t now() {
 
 // returns vector of pairs {a[i], i}
 template<class T>
-V<P<T,int>> indv(V<T>& a) {
+V<P<T,int>> indv(const V<T>& a) {
     V<P<T,int>> res(sz(a));
     f0r(i,sz(a))
         res[i] = mp(a[i],i);
@@ -228,7 +228,7 @@ namespace mod {
         re x;
     }
 
-    // Requirements: a % b == 0, MOD is prime number
+    // Requirements: a % b == 0, MOD is a prime number
     int idiv(int a, int b) {
         re mul(a,pow(b,MOD-2));
     }
@@ -604,7 +604,7 @@ namespace rnd {
         re s;
     }
 
-    str s(int n, str chars) {
+    str s(int n, const str& chars) {
         uid<int> range(0,sz(chars)-1);
         str s(n,0);
         for (ch& c : s) c = chars[range(engine)];
@@ -662,13 +662,13 @@ namespace rnd {
         vi p = v(n-2,0,n-1);
         vi c(n);
         for (int i : p) ++c[i];
+        vi a(n);
+        iota(all(a), 0);
         auto cmp = [&](int a, int b) {
             if (c[a] != c[b])
                 re c[a] < c[b];
             re a < b;
         };
-        vi a(n);
-        iota(all(a), 0);
         set<int,decltype(cmp)> s(all(a), cmp);
         vvi g(n);
         f0r(i,n-2) {
