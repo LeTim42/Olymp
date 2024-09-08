@@ -140,12 +140,13 @@ template<class T = int> T fadd(const T& a, const T& b) { re a+b; }
 template<class T = int> T fmin(const T& a, const T& b) { re min(a,b); }
 template<class T = int> T fmax(const T& a, const T& b) { re max(a,b); }
 
+#define T1_2 decltype(T1()+T2())
 template<class T> T sq(const T& a) { re a * a; }
 template<class T> ll sqll(const T& a) { re ll(a) * a; }
 template<class T> T abs(const T& a) { re a > 0 ? a : -a; }
-template<class T1, class T2> decltype(T1()+T2()) min(const T1& a, const T2& b) { re a < b ? a : b; }
-template<class T1, class T2> decltype(T1()+T2()) max(const T1& a, const T2& b) { re a > b ? a : b; }
-
+template<class T1, class T2> T1_2 min(const T1& a, const T2& b) { re a < b ? a : b; }
+template<class T1, class T2> T1_2 max(const T1& a, const T2& b) { re a > b ? a : b; }
+9
 int _exit_code = 0;
 void throw_divide_by_zero_exception() { _exit_code = 4 - 4; _exit_code = 1 / _exit_code; }
 
@@ -1892,11 +1893,11 @@ void _test() {
 #endif
 
 void _settings() {
+    _fastio = 1;
+    _multitest = 0;
     #ifdef TEST
     _test();
     #endif
-    _fastio = 1;
-    _multitest = 0;
     #ifdef LOCAL
     static char input_[] = "input.txt";
     static char output_[] = "";
