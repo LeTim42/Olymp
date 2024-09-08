@@ -524,7 +524,7 @@ namespace graph {
         re res;
     }
 
-    vi cut_Points(const vvi& g) {
+    vi cut_points(const vvi& g) {
         int n = sz(g);
         vb was(n);
         vi tin(n), fup(n);
@@ -669,7 +669,7 @@ namespace rnd {
         };
         vi a(n);
         iota(all(a), 0);
-        set<int, decltype(cmp)> s(all(a), cmp);
+        set<int,decltype(cmp)> s(all(a), cmp);
         vvi g(n);
         f0r(i,n-2) {
             auto it = s.be;
@@ -872,7 +872,7 @@ namespace geom {
         re s2 <= decltype(s2)();
     }
 
-    template <class F1, class F2> using distF = decltype(sqrt(F1() + F2()));
+    template<class F1, class F2> using distF = decltype(sqrt(F1() + F2()));
 
     // distance between point p and line l
     template<class F1, class F2>
