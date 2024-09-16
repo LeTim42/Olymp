@@ -148,7 +148,7 @@ template<class T1, class T2> T1_2 min(const T1& a, const T2& b) { re a < b ? a :
 template<class T1, class T2> T1_2 max(const T1& a, const T2& b) { re a > b ? a : b; }
 
 int _exit_code = 0;
-void throw_divide_by_zero_exception() { _exit_code = 4 - 4; _exit_code = 1 / _exit_code; }
+void throw_divide_by_zero_exception() { vector<int> a(2); _exit_code = a[0] - a.back(); _exit_code = 1 / _exit_code; }
 
 const int iINF = 2000000007;
 const ll INF = 2000000000000000007;
@@ -170,7 +170,7 @@ V<P<T,int>> indv(const V<T>& a) {
 
 // returns first x in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
 template<class T>
-T bin_search(T l, T r, function<bl(T)> f) {
+T bin_search(T l, T r, const function<bl(T)>& f) {
     while (l < r) {
         T x = (l+r)>>1;
         if (f(x)) r = x;
@@ -181,7 +181,7 @@ T bin_search(T l, T r, function<bl(T)> f) {
 
 // returns the minimal x in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
 template<class T>
-T bin_search_real(T l, T r, function<bl(T)> f, T eps = 1e-8) {
+T bin_search_real(T l, T r, const function<bl(T)>& f, T eps = 1e-8) {
     while (r-l > eps) {
         T x = (l+r)/2;
         if (f(x)) r = x;
@@ -192,7 +192,7 @@ T bin_search_real(T l, T r, function<bl(T)> f, T eps = 1e-8) {
 
 // returns first x in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
 template<class T>
-T exp_search(T l, T r, function<bl(T)> f) {
+T exp_search(T l, T r, const function<bl(T)>& f) {
     T x = l, step = 1;
     while (l < r) {
         if (f(x)) re bin_search<T>(x-(step>>1),x,f);
@@ -1147,6 +1147,28 @@ public:
         re 0;
     }
 
+    bl operator<(const Bitset& b) const {
+        if (m > b.m) repr(i,b.m,m) if (a[i]) re 0;
+        else rep(i,m,b.m) if (b.a[i]) re 1;
+        f0rr(i,min(m,b.m)) if (a[i] != b.a[i]) re a[i] < b.a[i];
+        re 0;
+    }
+
+    bl operator>(const Bitset& b) const {
+        if (m > b.m) repr(i,b.m,m) if (a[i]) re 1;
+        else rep(i,m,b.m) if (b.a[i]) re 0;
+        f0rr(i,min(m,b.m)) if (a[i] != b.a[i]) re a[i] > b.a[i];
+        re 0;
+    }
+
+    bl operator<=(const Bitset& b) const {
+        re !(*this > b);
+    }
+
+    bl operator>=(const Bitset& b) const {
+        re !(*this < b);
+    }
+
     bl operator[](size_t i) const {
         re get(i);
     }
@@ -1642,10 +1664,10 @@ template<class T = int>
 class SparseTable {
 private:
     V<V<T>> t;
-    T(*f)(T,T);
+    function<T(const T&, const T&)> f;
 public:
-    SparseTable(V<T>& a, T(*_f)(T,T) = &fmin) : f(_f) {
-        int n = sz(a), m = __lg(n);
+    SparseTable(const V<T>& a, const function<T(const T&, const T&)>& f = fmin<T>) : f(f) {
+        int n = sz(a), m = lbit(n);
         t = V<V<T>>(m+1);
         t[0] = a;
         f0r(i,m) {
@@ -1656,7 +1678,7 @@ public:
     }
     
     T get(int l, int r) { //[l; r)
-        int i = __lg(r-l);
+        int i = lbit(r-l);
         re f(t[i][l], t[i][r-(1<<i)]);
     }
 };
@@ -1670,24 +1692,24 @@ class SegTree {
 private:
     int n;
     V<T> t;
-    T(*f)(T,T);
+    function<T(const T&, const T&)> f;
     T nil;
 public:
-    SegTree(int _n, T(*_f)(T,T) = &fadd, T _nil = T()) : n(_n), f(_f), nil(_nil) {
+    SegTree(int n, const function<T(const T&, const T&)>& f = fadd<T>, const T& nil = T()) : n(n), f(f), nil(nil) {
         t = V<T>(n<<1);
     }
     
-    void build(V<T>& a) {
+    void build(const V<T>& a) {
         f0r(i,n) t[i+n] = a[i];
         f0rr(i,n) t[i] = f(t[i<<1], t[i<<1|1]);
     }
     
-    void set(int i, T x) {
+    void set(int i, const T& x) {
         for (t[i += n] = x; i > 1; i >>= 1)
             t[i>>1] = f(t[i], t[i^1]);
     }
     
-    void add(int i, T x) {
+    void add(int i, const T& x) {
         set(i, t[i+n] + x);
     }
     
@@ -1725,10 +1747,10 @@ private:
     int n, h;
     V<T> t;
     V<D> d;
-    T(*f)(T,T);
+    function<T(const T&, const T&)> f;
     T nil;
     
-    void apply(int i, D x) {
+    void apply(int i, const D& x) {
         t[i] = t[i] + x;
         if (i < n) d[i] = d[i] + x;
     }
@@ -1751,18 +1773,18 @@ private:
         }
     }
 public:
-    SegTreeLP(int _n, T(*_f)(T,T) = &fmax, T _nil = T()) : n(_n), f(_f), nil(_nil) {
+    SegTreeLP(int n, const function<T(const T&, const T&)>& f = fmax<T>, const T& nil = T()) : n(n), f(f), nil(nil) {
         t = V<T>(n<<1);
         h = lbit(n)+1;
         d = V<D>(n);
     }
     
-    void build(V<D>& a) {
+    void build(const V<D>& a) {
         f0r(i,n) t[i+n] = t[i+n] + a[i];
         f0rr(i,n) t[i] = f(t[i<<1], t[i<<1|1]);
     }
     
-    void add(int l, int r, D x) { //[l; r)
+    void add(int l, int r, const D& x) { //[l; r)
         l += n, r += n;
         int l0 = l, r0 = r;
         for (; l < r; l >>= 1, r >>= 1) {
