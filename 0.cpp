@@ -147,8 +147,7 @@ template<class T> T abs(const T& a) { re a > 0 ? a : -a; }
 template<class T1, class T2> T1_2 min(const T1& a, const T2& b) { re a < b ? a : b; }
 template<class T1, class T2> T1_2 max(const T1& a, const T2& b) { re a > b ? a : b; }
 
-int _exit_code = 0;
-void throw_divide_by_zero_exception() { vector<int> a(2); _exit_code = a[0] - a.back(); _exit_code = 1 / _exit_code; }
+void throw_divide_by_zero_exception() { vi a(2); cout << (a.front() + 1) / a.back(); }
 
 const int iINF = 2000000007;
 const ll INF = 2000000000000000007;
@@ -1215,7 +1214,7 @@ public:
             repr(i,d+1,m)
                 a[i] = (a[i-d] << r) | (a[i-d-1] >> s);
             a[d] = a[0] << r;
-        } else repr(i,d,m) a[i] = a[i-d];
+        } else repr(i,int(d),m) a[i] = a[i-d];
         f0r(i,d) a[i] = 0;
         a[m-1] &= extra;
         re *this;
@@ -1849,7 +1848,7 @@ int main() {
     auto finish = now();
     cout << "\nWorking time: " << (int)round((finish - start) / 1e6) << "ms";
     #endif
-    re _exit_code;
+    re 0;
 }
 
 // #define TEST
