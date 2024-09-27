@@ -1232,15 +1232,15 @@ public:
         re Bitset(*this).flip();
     }
 
-    Bitset operator&(const Bitset& b) {
+    Bitset operator&(const Bitset& b) const {
         re Bitset(*this) &= b;
     }
 
-    Bitset operator|(const Bitset& b) {
+    Bitset operator|(const Bitset& b) const {
         re Bitset(*this) |= b;
     }
 
-    Bitset operator^(const Bitset& b) {
+    Bitset operator^(const Bitset& b) const {
         re Bitset(*this) ^= b;
     }
 
