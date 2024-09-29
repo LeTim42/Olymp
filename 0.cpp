@@ -158,9 +158,17 @@ uint64_t now() {
     re duration_cast<nanoseconds>(steady_clock::now().time_since_epoch()).count();
 }
 
+// returns rounded down square root of x
+ll sqrti(ll x) {
+    ll s = sqrt(x);
+    while (s * s < x) ++s;
+    while (s * s > x) --s;
+    re s;
+}
+
 // returns vector of pairs {a[i], i}
 template<class T>
-V<P<T,int>> indv(const V<T>& a) {
+V<P<T,int>> idxv(const V<T>& a) {
     V<P<T,int>> res(sz(a));
     f0r(i,sz(a))
         res[i] = mp(a[i],i);
@@ -178,7 +186,7 @@ T bin_search(T l, T r, const function<bl(T)>& f) {
     re l;
 }
 
-// returns the minimal x in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
+// returns minimal x with precision eps in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
 template<class T>
 T bin_search_real(T l, T r, const function<bl(T)>& f, T eps = 1e-8) {
     while (r-l > eps) {
@@ -199,6 +207,19 @@ T exp_search(T l, T r, const function<bl(T)>& f) {
         step <<= 1;
     }
     re bin_search<T>(x-(step>>1),r,f);
+}
+
+// sorts and merges intersecting segments
+template<class T = int>
+void merge_segments(V<P<T,T>>& a) {
+    sort(all(a));
+    int i = 0;
+    rep(j,1,sz(a))
+        if (a[i].se < a[j].fi)
+            a[++i] = a[j];
+        else
+            amax(a[i].se, a[j].se);
+    a.resize(i+1);
 }
 
 // Modular arithmetic
@@ -1656,6 +1677,33 @@ public:
         p[b] = a;
         h[a] += h[a] == h[b];
         re 1;
+    }
+};
+
+template<class T = int>
+struct SegmentSet {
+    set<P<T,T>> s;
+
+    void add(T l, T r) {
+        auto itl = s.lower_bound(mp(l+1,l+1));
+        auto itr = s.lower_bound(mp(r+1,r+1));
+        if (itl != s.be) {
+            --itl;
+            if ((*itl).se < l) ++itl;
+        }
+        if (itr != s.en && (*itr).fi <= r)
+            ++itr;
+        V<P<T,T>> d;
+        for (auto it = itl; it != itr; ++it)
+            d.pb(*it);
+        if (sz(d)) {
+            amin(l,d[0].fi);
+            amax(r,d.back().se);
+            for (const auto& p : d) {
+                s.erase(p);
+            }
+        }
+        s.insert(mp(l,r));
     }
 };
 
