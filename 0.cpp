@@ -1681,33 +1681,6 @@ public:
 };
 
 template<class T = int>
-struct SegmentSet {
-    set<P<T,T>> s;
-
-    void add(T l, T r) {
-        auto itl = s.lower_bound(mp(l+1,l+1));
-        auto itr = s.lower_bound(mp(r+1,r+1));
-        if (itl != s.be) {
-            --itl;
-            if ((*itl).se < l) ++itl;
-        }
-        if (itr != s.en && (*itr).fi <= r)
-            ++itr;
-        V<P<T,T>> d;
-        for (auto it = itl; it != itr; ++it)
-            d.pb(*it);
-        if (sz(d)) {
-            amin(l,d[0].fi);
-            amax(r,d.back().se);
-            for (const auto& p : d) {
-                s.erase(p);
-            }
-        }
-        s.insert(mp(l,r));
-    }
-};
-
-template<class T = int>
 class SparseTable {
 private:
     V<V<T>> t;
