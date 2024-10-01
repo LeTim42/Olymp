@@ -166,6 +166,21 @@ ll sqrti(ll x) {
     re s;
 }
 
+// extended euclidean algorithm
+int gcdex(int a, int b, int& x, int& y) {
+    int _a = a, _b = b;
+    x = 1; y = 0;
+    while (b) {
+        int q = a / b;
+        a -= q * b;
+        x -= q * y;
+        swap(a,b);
+        swap(x,y);
+    }
+    y = _b ? (a - x * _a) / _b : 0;
+    return a;
+}
+
 // returns vector of pairs {a[i], i}
 template<class T>
 V<P<T,int>> idxv(const V<T>& a) {
@@ -226,47 +241,54 @@ void merge_segments(V<P<T,T>>& a) {
 namespace mod {
     int MOD = 1000000007;
 
-    int add(int a, int b) {
-        re (a + b) % MOD;
+    int add(int a, int b, int m = MOD) {
+        re (a + b) % m;
     }
 
-    int sub(int a, int b) {
-        re (a - b + MOD) % MOD;
+    int sub(int a, int b, int m = MOD) {
+        re (a - b + m) % m;
     }
 
-    int mul(int a, int b) {
-        re ((ll)a * b) % MOD;
+    int mul(int a, int b, int m = MOD) {
+        re (ll(a) * b) % m;
     }
 
-    int pow(int a, int n) {
+    int pow(int a, int n, int m = MOD) {
         int x = 1;
         for (; n; n >>= 1) {
             if (n & 1)
-                x = mul(x,a);
-            a = mul(a,a);
+                x = mul(x,a,m);
+            a = mul(a,a,m);
         }
         re x;
     }
 
-    // Requirements: a % b == 0, MOD is a prime number
-    int idiv(int a, int b) {
-        re mul(a,pow(b,MOD-2));
+    // Requirements: a % b == 0, m is a prime number
+    int idiv(int a, int b, int m = MOD) {
+        re mul(a,pow(b,m-2));
     }
 
-    int llmod(ll a) {
-        re a % MOD + (a < 0 ? MOD : 0);
+    int modll(ll a, int m = MOD) {
+        re (a % m + m) % m;
     }
 
-    vi log(int a, int b) {
-        int m = MOD;
-        MOD /= __gcd(a,m);
-        int n = (int)sqrt(MOD+.0) + 1;
-        int an = pow(a,n);
+    int rev(int a, int m = MOD) {
+        int x, y;
+        if (gcdex(a,m,x,y) != 1)
+            re -1;
+        re modll(x,m);
+    }
+
+    vi log(int a, int b, int m = MOD) {
+        int m2 = m;
+        m /= __gcd(a,m);
+        int n = sqrti(m) + 1;
+        int an = pow(a,n,m);
         int x = an;
         multimap<int,int> vals;
         rep(i,1,n+1) {
             vals.insert(mp(x,i));
-            x = mul(x,an);
+            x = mul(x,an,m);
         }
         x = b;
         vi ans;
@@ -275,38 +297,36 @@ namespace mod {
             for (auto it = r.fi; it != r.se; ++it) {
                 int x = (*it).se * n - i;
                 if (x >= m) continue;
-                swap(m,MOD);
-                if (pow(a,x) == b)
+                if (pow(a,x,m2) == b)
                     ans.pb(x);
-                swap(m,MOD);
             }
-            x = mul(x,a);
+            x = mul(x,a,m);
         }
         sort(all(ans));
         unq(ans);
         re ans;
     }
 
-    vvi mul(const vvi& a, const vvi& b) {
-        int n = sz(a), m = sz(b[0]), l = sz(a[0]);
+    vvi mul(const vvi& a, const vvi& b, int m = MOD) {
+        int n = sz(a), s = sz(b[0]), l = sz(a[0]);
         assert(l == sz(b));
-        vvi c(n, vi(m));
+        vvi c(n, vi(s));
         f0r(i,n)
-            f0r(j,m)
+            f0r(j,s)
                 f0r(k,l)
-                    c[i][j] = add(c[i][j], mul(a[i][k], b[k][j]));
+                    c[i][j] = add(c[i][j], mul(a[i][k], b[k][j], m), m);
         re c;
     }
 
-    vvi pow(vvi a, int n) {
-        int m = sz(a);
-        assert(m == sz(a[0]));
-        vvi x(m, vi(m));
-        f0r(i,m) x[i][i] = 1;
+    vvi pow(vvi a, int n, int m = MOD) {
+        int s = sz(a);
+        assert(s == sz(a[0]));
+        vvi x(s, vi(s));
+        f0r(i,s) x[i][i] = 1;
         for (; n; n >>= 1) {
             if (n & 1)
-                x = mul(x,a);
-            a = mul(a,a);
+                x = mul(x,a,m);
+            a = mul(a,a,m);
         }
         re x;
     }
@@ -446,7 +466,8 @@ namespace graph {
             int u = *it;
             q.erase(it);
             for (P<int,T> p : g[u]) {
-                int v = p.fi, w = p.se;
+                int v = p.fi;
+                T w = p.se;
                 if (d[u] + w < d[v]) {
                     q.erase(v);
                     d[v] = d[u] + w;
