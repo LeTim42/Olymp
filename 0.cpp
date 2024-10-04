@@ -1146,18 +1146,16 @@ public:
     }
 
     int left_bit() const {
-        int res = -1;
         f0rr(i,m)
-            if ((res = lbit(a[i])) != -1)
-                re res+i*64;
+            if (a[i])
+                re lbit(a[i])+i*64;
         re -1;
     }
 
     int right_bit() const {
-        int res = -1;
         f0r(i,m)
-            if ((res = rbit(a[i])) != -1)
-                re res+i*64;
+            if (a[i])
+                re rbit(a[i])+i*64;
         re -1;
     }
 
