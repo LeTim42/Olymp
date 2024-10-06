@@ -1334,7 +1334,7 @@ private:
             n = -n;
         do {
             nums.pb(n);
-            n = n / (ll(~u()) + ll(1));
+            n = n / (ul(1) << 32);
         } while (n);
     }
 
@@ -1342,7 +1342,7 @@ private:
     T vtoi() const {
         T res = 0;
         for (u i : nums)
-            res = res * (ll(~u()) + ll(1)) + i;
+            res = res * (ul(1) << 32) + i;
         if (neg) res = -res;
         re res;
     }
@@ -1447,7 +1447,7 @@ public:
             ul sum = ul(a[i]) + ul(b[i]) + ul(rest);
             if (sum > ~u()) {
                 rest = 1;
-                sum -= ~u();
+                sum -= ul(1) << 32;
             } else rest = 0;
             nums.pb(sum);
         }
@@ -1491,7 +1491,7 @@ public:
             for (int j = 0; j < sz(b) || carry; ++j) {
                 ul cur = nums[i+j] + ul(a[i]) * ul(j < sz(b) ? b[j] : 0) + carry;
                 nums[i+j] = cur;
-                carry = cur > ~u() ? cur /= (ul(~u())+ul(1)) : 0;
+                carry = cur > ~u() ? cur /= (ul(1) << 32) : 0;
             }
         }
         remove_leading_zeros();
@@ -1508,7 +1508,7 @@ public:
         u cc;
         V<u> cat(size(), 0);
         BigInt r;
-        BigInt base(ul(~u())+ul(1));
+        BigInt base(ul(1) << 32);
         BigInt b(other);
         b.neg = 0;
         for (i = size()-1; r * base + BigInt(nums[i]) < b; --i){
