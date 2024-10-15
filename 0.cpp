@@ -110,6 +110,17 @@ template<class T> ostream& operator<<(ostream& out, const V<T>& a) { for (const 
 template<class T> void print(const T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x << sep; }
 template<class T> void print1(const T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x+1 << sep; }
 
+template<int D, class T>
+struct VV : public V<VV<D-1,T>> {
+    static_assert(D >= 1, "Vector dimension must be greater than zero!");
+    template<class... Args>
+    VV(int n = 0, Args... args) : V<VV<D-1,T>>(n, VV<D-1,T>(args...)) {}
+};
+template<class T>
+struct VV<1,T> : public V<T> {
+    VV(int n = 0, const T& val = T()) : V<T>(n, val) {}
+};
+
 template<typename ...P> void _inp(P &&... params) { (void(cin >> forward<P>(params)), ...); }
 #define inp(T,...) T __VA_ARGS__; _inp(__VA_ARGS__)
 #define inpv(T,n,a) int n; cin >> n; V<T> a(n); cin >> a
