@@ -107,6 +107,8 @@ template<class T1, class T2> istream& operator>>(istream& in, P<T1,T2>& a) { re 
 template<class T1, class T2> ostream& operator<<(ostream& out, const P<T1,T2>& a) { re out << a.fi << ' ' << a.se; }
 template<class T> istream& operator>>(istream& in, V<T>& a) { for (T& x : a) in >> x; re in; }
 template<class T> ostream& operator<<(ostream& out, const V<T>& a) { for (const T& x : a) out << x << ' '; re out; }
+template<class T1, class T2> void print(const P<T1,T2>& a, char sep = '\n', ostream& out = cout) { out << a.fi << sep << a.se; }
+template<class T1, class T2> void print1(const P<T1,T2>& a, char sep = '\n', ostream& out = cout) { out << a.fi+1 << sep << a.se+1; }
 template<class T> void print(const T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x << sep; }
 template<class T> void print1(const T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x+1 << sep; }
 
@@ -214,8 +216,8 @@ T bin_search(T l, T r, const function<bl(T)>& f) {
 
 // returns minimal x with precision eps in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
 template<class T>
-T bin_search_real(T l, T r, const function<bl(T)>& f, T eps = 1e-8) {
-    while (r-l > eps) {
+T bin_search_real(T l, T r, const function<bl(T)>& f, int count = 100, T eps = 1e-8) {
+    for (int i = 0; i < count && r-l > eps; ++i) {
         T x = (l+r)/2;
         if (f(x)) r = x;
         else l = x;
@@ -1879,7 +1881,9 @@ char *_input, *_output;
 
 void _settings();
 void _solve();
+#ifdef LOCAL
 void _test();
+#endif
 
 int main() {
     #ifdef LOCAL
