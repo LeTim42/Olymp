@@ -95,10 +95,12 @@ typedef V<pii> vii;
 typedef V<pll> vpll;
 typedef V<pdd> vpdd;
 typedef V<pld> vpld;
+typedef V<pss> vpss;
 typedef V<vi> vvi;
 typedef V<vll> vvll;
 typedef V<vb> vvb;
 typedef V<vc> vvc;
+typedef V<vs> vvs;
 typedef V<vii> vvii;
 
 template<class T> istream& operator>>(istream&,V<T>&);
@@ -1932,7 +1934,7 @@ void _test() {
     const uint64_t TIME_LIMIT_MILLISECONDS = 0;
     auto _start = now();
     int _count;
-    for (_count = 0; now() - _start < 1000000000*TEST_TIME_SECONDS; ++_count) {
+    for (_count = 0; now() - _start < 1000000000 * TEST_TIME_SECONDS; ++_count) {
         /* generate input */
         output ans1 = slow(input_vars);
         output ans2;
