@@ -268,7 +268,7 @@ private:
                         } else if (tokens[i+1].value == "*") {
                             start = std::min(start, tokens[i].line);
                             i += 3;
-                            while (i < tokens.size() && tokens[i-1].value == "*" && tokens[i].value == "/") ++i;
+                            while (i < tokens.size() && !(tokens[i-1].value == "*" && tokens[i].value == "/")) ++i;
                         }
                     }
                     else if (value == "namespace" || value == "struct" || value == "class" || value == "enum")
