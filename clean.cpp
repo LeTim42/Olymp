@@ -525,12 +525,12 @@ void copy(std::string str) {
 std::string clean(std::vector<std::string>& lines, std::vector<size_t>& unused) {
     std::string str = "";
     size_t j = 0;
-    bool empty = true;
+    bool was_empty = true;
     for (size_t i = 0; i < lines.size(); ++i) {
         if (j < unused.size() && unused[j] == i) ++j;
-        else if (lines[i].size() || !empty) {
+        else if (bool empty = std::all_of(lines[i].begin(), lines[i].end(), isspace); !empty || !was_empty) {
             str += lines[i] + "\n";
-            empty = !lines[i].size();
+            was_empty = empty;
         }
     }
     return str;
