@@ -58,6 +58,8 @@
 #define urd uniform_real_distribution
 #define f0r(i,n) for (int i = 0; i < (n); ++i)
 #define f0rr(i,n) for (int i = (n)-1; i >= 0; --i)
+#define f0r1(i,n) for (int i = 1; i < (n); ++i)
+#define f0rr1(i,n) for (int i = (n)-1; i >= 1; --i)
 #define f0rbit(a,i,n) f0r(i,(n)) if (bit((a),i))
 #define rep(i,s,n) for (int i = (s); i < (n); ++i)
 #define repr(i,s,n) for (int i = (n)-1; i >= (s); --i)
@@ -167,89 +169,131 @@ void throw_divide_by_zero_exception() { vi a(2); cout << (a.front() + 1) / a.bac
 const int iINF = 2000000007;
 const ll INF = 2000000000000000007;
 
-// returns current time in nanoseconds
-uint64_t now() {
-    using namespace chrono;
-    re duration_cast<nanoseconds>(steady_clock::now().time_since_epoch()).count();
-}
-
-// returns rounded down square root of x
-ll sqrti(ll x) {
-    ll s = sqrt(x);
-    while (s * s < x) ++s;
-    while (s * s > x) --s;
-    re s;
-}
-
-// extended euclidean algorithm
-int gcdex(int a, int b, int& x, int& y) {
-    int _a = a, _b = b;
-    x = 1; y = 0;
-    while (b) {
-        int q = a / b;
-        a -= q * b;
-        x -= q * y;
-        swap(a,b);
-        swap(x,y);
+namespace other {
+    // returns current time in nanoseconds
+    uint64_t now() {
+        using namespace chrono;
+        re duration_cast<nanoseconds>(steady_clock::now().time_since_epoch()).count();
     }
-    y = _b ? (a - x * _a) / _b : 0;
-    return a;
-}
 
-// returns vector of pairs {a[i], i}
-template<class T>
-V<P<T,int>> idxv(const V<T>& a) {
-    V<P<T,int>> res(sz(a));
-    f0r(i,sz(a))
-        res[i] = mp(a[i],i);
-    re res;
-}
-
-// returns first x in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
-template<class T>
-T bin_search(T l, T r, const function<bl(T)>& f) {
-    while (l < r) {
-        T x = (l+r)>>1;
-        if (f(x)) r = x;
-        else l = x+1;
+    // returns rounded down square root of x
+    ll sqrti(ll x) {
+        ll s = sqrt(x);
+        while (s * s < x) ++s;
+        while (s * s > x) --s;
+        re s;
     }
-    re l;
-}
 
-// returns minimal x with precision eps in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
-template<class T>
-T bin_search_real(T l, T r, const function<bl(T)>& f, int count = 100, T eps = 1e-8) {
-    for (int i = 0; i < count && r-l > eps; ++i) {
-        T x = (l+r)/2;
-        if (f(x)) r = x;
-        else l = x;
+    // extended euclidean algorithm
+    int gcdex(int a, int b, int& x, int& y) {
+        int _a = a, _b = b;
+        x = 1; y = 0;
+        while (b) {
+            int q = a / b;
+            a -= q * b;
+            x -= q * y;
+            swap(a,b);
+            swap(x,y);
+        }
+        y = _b ? (a - x * _a) / _b : 0;
+        return a;
     }
-    re l;
-}
 
-// returns first x in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
-template<class T>
-T exp_search(T l, T r, const function<bl(T)>& f) {
-    T x = l, step = 1;
-    while (l < r) {
-        if (f(x)) re bin_search<T>(x-(step>>1),x,f);
-        x += step;
-        step <<= 1;
+    // returns vector of pairs {a[i], i}
+    template<class T>
+    V<P<T,int>> idxv(const V<T>& a) {
+        V<P<T,int>> res(sz(a));
+        f0r(i,sz(a))
+            res[i] = mp(a[i],i);
+        re res;
     }
-    re bin_search<T>(x-(step>>1),r,f);
-}
 
-// sorts and merges intersecting segments
-template<class T = int>
-void merge_segments(V<P<T,T>>& a) {
-    sort(all(a));
-    int i = 0;
-    rep(j,1,sz(a))
-        if (a[i].se < a[j].fi)
-            a[++i] = a[j];
-        else
-            amax(a[i].se, a[j].se);
-    a.resize(i+1);
+    // returns first x in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
+    template<class T>
+    T bin_search(T l, T r, const function<bl(T)>& f) {
+        while (l < r) {
+            T x = (l+r)>>1;
+            if (f(x)) r = x;
+            else l = x+1;
+        }
+        re l;
+    }
+
+    // returns minimal x with precision eps in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
+    template<class T>
+    T bin_search_real(T l, T r, const function<bl(T)>& f, int count = 100, T eps = 1e-8) {
+        for (int i = 0; i < count && r-l > eps; ++i) {
+            T x = (l+r)/2;
+            if (f(x)) r = x;
+            else l = x;
+        }
+        re l;
+    }
+
+    // returns first x in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
+    template<class T>
+    T exp_search(T l, T r, const function<bl(T)>& f) {
+        T x = l, step = 1;
+        while (l < r) {
+            if (f(x)) re bin_search<T>(x-(step>>1),x,f);
+            x += step;
+            step <<= 1;
+        }
+        re bin_search<T>(x-(step>>1),r,f);
+    }
+
+    // sorts and merges intersecting segments
+    template<class T = int>
+    void merge_segments(V<P<T,T>>& a) {
+        sort(all(a));
+        int i = 0;
+        f0r1(j,sz(a))
+            if (a[i].se < a[j].fi)
+                a[++i] = a[j];
+            else
+                amax(a[i].se, a[j].se);
+        a.resize(i+1);
+    }
+
+    // returns prefix-function of string
+    // p[i] = k -> max length k < i of prefix of string that is equal to suffix of substring [0; i]
+    vi prefix_function(const str& s) {
+        int n = sz(s);
+        vi p(n);
+        f0r1(i,n) {
+            int j = p[i-1];
+            while (j > 0 && s[i] != s[j])
+                j = p[j-1];
+            j += s[i] == s[j];
+            p[i] = j;
+        }
+        re p;
+    }
+
+    // finds all palindromes in string
+    // d.first[i] = k -> substrings [i-j+1; i+j-1] are palindromes of length 2 * j - 1 for all j = [1; k]
+    // d.second[i] = k -> substrings [i-j; i+j-1] are palindromes of length 2 * j for all j = [1; k]
+    P<vi,vi> manacher(const str& s) {
+        int n = sz(s);
+        P<vi,vi> d{vi(n),vi(n)};
+        int l = 0, r = -1;
+        f0r(i,n) {
+            int k = i > r ? 1 : min(d.fi[l+r-i], r-i+1);
+            while (0 <= i-k && i+k < n && s[i-k] == s[i+k]) ++k;
+            d.fi[i] = k;
+            if (i+k-1 > r)
+                l = i-k+1, r = i+k-1;
+        }
+        l = 0, r = -1;
+        f0r(i,n) {
+            int k = i > r ? 0 : min(d.se[l+r-i+1], r-i+1);
+            while (0 <= i-k-1 && i+k < n && s[i-k-1] == s[i+k]) ++k;
+            d.se[i] = k;
+            if (i+k-1 > r)
+                l = i-k, r = i+k-1;
+        }
+        re d;
+    }
 }
 
 // Modular arithmetic
@@ -289,7 +333,7 @@ namespace mod {
 
     int rev(int a, int m = MOD) {
         int x, y;
-        if (gcdex(a,m,x,y) != 1)
+        if (other::gcdex(a,m,x,y) != 1)
             re -1;
         re modll(x,m);
     }
@@ -297,11 +341,11 @@ namespace mod {
     vi log(int a, int b, int m = MOD) {
         int m2 = m;
         m /= __gcd(a,m);
-        int n = sqrti(m) + 1;
+        int n = other::sqrti(m) + 1;
         int an = pow(a,n,m);
         int x = an;
         multimap<int,int> vals;
-        rep(i,1,n+1) {
+        f0r1(i,n+1) {
             vals.insert(mp(x,i));
             x = mul(x,an,m);
         }
@@ -553,6 +597,27 @@ namespace graph {
         re mp(comp,cond);
     }
 
+    vi topological_sort(const vvi& g) {
+        int n = sz(g);
+        vc was(n);
+        vi res;
+        res.reserve(n);
+        lambda(bl, dfs, int u) {
+            was[u] = 1;
+            for (int v : g[u])
+                if (was[v] == 1 || (!was[v] && !dfs(v)))
+                    re 0;
+            res.pb(u);
+            was[u] = 2;
+            re 1;
+        };
+        f0r(i,n)
+            if (!was[i] && !dfs(i))
+                re {}; // has cycle
+        reverse(all(res));
+        re res;
+    }
+
     vii bridges(const vvi& g) {
         int n = sz(g);
         vb was(n);
@@ -617,7 +682,7 @@ namespace rnd {
     mt19937 engine;
     
     void seed() {
-        engine.seed(now());
+        engine.seed(other::now());
     }
     
     void seed(int val) {
@@ -786,6 +851,11 @@ namespace rnd {
         re gw;
     }
 }
+
+// Work with strings
+namespace strings {
+    //
+};
 
 // Work with geometry
 namespace geom {
@@ -1156,7 +1226,7 @@ public:
 
     ull to_ull() const {
         if (!m) re 0;
-        rep(i,1,m) if (a[i]) throw overflow_error("The bitset cannot be represented as a 64-bit integer");
+        f0r1(i,m) if (a[i]) throw overflow_error("The bitset cannot be represented as a 64-bit integer");
         re a[0];
     }
 
@@ -1534,7 +1604,7 @@ public:
             r = r * base + BigInt(nums[i]);
             cc = ~u();
             if (BigInt(cc) * b > r)
-                cc = bin_search<ul>(0, ~u(), [&](ul cc) { re BigInt(cc) * b > r; }) - 1;
+                cc = other::bin_search<ul>(0, ~u(), [&](ul cc) { re BigInt(cc) * b > r; }) - 1;
             r -= BigInt(cc) * b;
             cat[lgcat++] = cc;
         }
@@ -1817,7 +1887,7 @@ private:
     }
     
     void push(int i) {
-        repr(j,1,h+1) {
+        f0rr1(j,h+1) {
             int p = i >> j;
             if (d[p] != D()) {
                 apply(p<<1, d[p]);
@@ -1889,7 +1959,7 @@ void _test();
 
 int main() {
     #ifdef LOCAL
-    auto start = now();
+    auto start = other::now();
     #endif
     _settings();
     if (_fastio) {
@@ -1902,7 +1972,7 @@ int main() {
     if (_multitest) cin >> t;
     while (t--) _solve();
     #ifdef LOCAL
-    auto finish = now();
+    auto finish = other::now();
     cout << "\nWorking time: " << (int)round((finish - start) / 1e6) << "ms";
     #endif
     re 0;
