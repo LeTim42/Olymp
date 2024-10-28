@@ -852,11 +852,6 @@ namespace rnd {
     }
 }
 
-// Work with strings
-namespace strings {
-    //
-};
-
 // Work with geometry
 namespace geom {
     const db EPS = 1e-8;
