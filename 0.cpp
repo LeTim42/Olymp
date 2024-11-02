@@ -227,7 +227,7 @@ namespace other {
             if (f(x)) r = x;
             else l = x;
         }
-        re l;
+        re r;
     }
 
     // returns first x in [l; r) where f(x) is true (or r if f(x) is false in [l; r))
@@ -1997,9 +1997,9 @@ bl check(const output& ans1, const output& ans2/*, input_args*/) {
 void _test() {
     const uint64_t TEST_TIME_SECONDS = 5;
     const uint64_t TIME_LIMIT_MILLISECONDS = 0;
-    auto _start = now();
+    auto _start = other::now();
     int _count;
-    for (_count = 0; now() - _start < 1000000000 * TEST_TIME_SECONDS; ++_count) {
+    for (_count = 0; other::now() - _start < 1000000000 * TEST_TIME_SECONDS; ++_count) {
         /* generate input */
         output ans1 = slow(input_vars);
         output ans2;
