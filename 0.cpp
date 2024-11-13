@@ -1425,12 +1425,26 @@ private:
 
     template<class T>
     void itov(T n) {
-        if (neg = n < T())
+        bl neg = n < T();
+        if (neg)
             n = -n;
         do {
             nums.pb(n);
             n = n / (ul(1) << 32);
         } while (n);
+        this->neg = neg;
+        check_zero();
+    }
+
+    void stov(const str& s) {
+        zero();
+        bl neg = s[0] == '-';
+        for (int i = neg; i < sz(s); ++i) {
+            *this *= 10;
+            *this += s[i] - '0';
+        }
+        this->neg = neg;
+        check_zero();
     }
 
     template<class T>
@@ -1448,6 +1462,7 @@ public:
     BigInt(u n) { itov(n); }
     BigInt(ll n) { itov(n); }
     BigInt(ul n) { itov(n); }
+    BigInt(const str& s) { stov(s); }
     BigInt(const V<u>& nums, bl neg) : nums(nums), neg(neg) {}
     BigInt(const BigInt& other) : nums(other.nums), neg(other.neg) {}
 
@@ -1569,7 +1584,7 @@ public:
         nums.clear();
         f0r(i,sz(a)) {
             nums.pb(a[i] - b[i] - rest);
-            rest = ul(a[i]) < ul(b[i] + rest);
+            rest = a[i] < ul(b[i]) + rest;
         }
         remove_leading_zeros();
         neg ^= less;
@@ -1606,7 +1621,7 @@ public:
         BigInt base(ul(1) << 32);
         BigInt b(other);
         b.neg = 0;
-        for (i = size()-1; r * base + BigInt(nums[i]) < b; --i){
+        for (i = size()-1; i >= 0 && r * base + BigInt(nums[i]) < b; --i) {
             r *= base;
             r += nums[i];
         }
@@ -1653,7 +1668,7 @@ public:
         int i = 0;
         do {
             s += (n % BigInt(10)).nums[0] + '0';
-            n /= BigInt(10);
+            n /= 10;
         } while (!n.is_zero());
         if (neg) s += '-';
         reverse(all(s));
