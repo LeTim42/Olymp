@@ -115,6 +115,7 @@ template<class T1, class T2> void print(const P<T1,T2>& a, char sep = '\n', ostr
 template<class T1, class T2> void print1(const P<T1,T2>& a, char sep = '\n', ostream& out = cout) { out << a.fi+1 << sep << a.se+1; }
 template<class T> void print(const T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x << sep; }
 template<class T> void print1(const T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x+1 << sep; }
+template<class T> void print_table(const V<V<T>>& a, int width = 5) { for (const auto& v : a) { for (const T& x : v) cout << setw(width) << x; cout << '\n'; } }
 
 template<int D, class T>
 struct VV : public V<VV<D-1,T>> {
@@ -131,6 +132,7 @@ template<typename ...P> void _inp(P &&... params) { (void(cin >> forward<P>(para
 #define inp(T,...) T __VA_ARGS__; _inp(__VA_ARGS__)
 #define inpv(T,n,a) int n; cin >> n; V<T> a(n); cin >> a
 #define inpvv(T,n,m,a) int n, m; cin >> n >> m; V<V<T>> a(n,V<T>(m)); cin >> a
+#define COMMA ,
 
 #ifdef LOCAL
 str _tab = "";
@@ -145,7 +147,7 @@ struct TAB_HELPER {
 #define EXPAND2(...) EXPAND1(EXPAND1(EXPAND1(EXPAND1(__VA_ARGS__))))
 #define EXPAND1(...) __VA_ARGS__
 #define DIN TAB_HELPER _tab_helper;
-#define DEB(...) cout << _tab; __VA_OPT__(EXPAND(DEB_HELPER(__VA_ARGS__))) cout << endl;
+#define DEB(...) { cout << _tab; __VA_OPT__(EXPAND(DEB_HELPER(__VA_ARGS__))) cout << endl; }
 #define DEB_HELPER(var, ...) cout << ">> " << #var << " = " << var << " "; __VA_OPT__(DEB_HELPER_2 PARENS (__VA_ARGS__))
 #define DEB_HELPER_2() DEB_HELPER
 #else
