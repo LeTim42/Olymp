@@ -17,6 +17,7 @@
 #include <climits>
 #include <ctime>
 #include <random>
+#include <complex>
 #ifdef LOCAL
 #include <thread>
 #include <future>
@@ -170,6 +171,7 @@ void throw_divide_by_zero_exception() { vi a(2); cout << (a.front() + 1) / a.bac
 
 const int iINF = 2000000007;
 const ll INF = 2000000000000000007;
+const db PI = 3.14159265358979323846;
 
 namespace other {
     // returns current time in nanoseconds
@@ -832,7 +834,6 @@ namespace rnd {
 // Work with geometry
 namespace geom {
     const db EPS = 1e-8;
-    const db PI = 3.14159265358979323846;
 
     // Double with eps precision on comparisons
     struct F {
@@ -1445,262 +1446,342 @@ public:
     }
 };
 
+#define FFT_MULT
+#ifdef FFT_MULT
+const uint32_t FFT_THRESHOLD = 3000;
+const uint32_t FFT_LEN = 8;
+static_assert(32 % FFT_LEN == 0);
+const uint32_t FFT_COUNT = 32 / FFT_LEN;
+const uint32_t FFT_MASK = (1 << FFT_LEN) - 1;
+#endif
+
 // Long arithmetics
 class BigInt {
 private:
     using u = uint32_t;
     using ul = uint64_t;
-    V<u> nums;
-    bl neg;
+
+    const ul BASE = ul(1) << 32; // DO NOT CHANGE!
+
+    void remove_leading_zeros() {
+        while (sz(nums) && !nums.back())
+            nums.pp();
+        if (!sz(nums))
+            sign = 0;
+    }
 
     void make_same_len(const BigInt& other, V<u>& a, V<u>& b) const {
         a = nums;
         b = other.nums;
-        int diff = sz(a) - sz(b);
-        if (diff > 0)
-            f0r(i,diff) b.pb(0);
-        else if (diff < 0)
-            f0r(i,-diff) a.pb(0);
+        if (sz(a) < sz(b))
+            a.resize(sz(b), 0);
+        else
+            b.resize(sz(a), 0);
     }
 
-    void remove_leading_zeros() {
-        while (sz(nums) > 1 && !nums.back())
-            nums.pp();
-    }
+public:
+    V<u> nums;
+    ch sign;
 
-    void zero() {
-        nums.assign(1,0);
-        neg = 0;
-    }
-
-    void check_zero() {
-        if (is_zero())
-            neg = 0;
-    }
-
-    template<class T>
-    void itov(T n) {
-        bl neg = n < T();
-        if (neg)
-            n = -n;
-        do {
-            nums.pb(n);
-            n = n / (ul(1) << 32);
-        } while (n);
-        this->neg = neg;
-        check_zero();
-    }
-
-    void stov(const str& s) {
-        zero();
-        bl neg = s[0] == '-';
-        for (int i = neg; i < sz(s); ++i) {
-            *this *= 10;
-            *this += s[i] - '0';
+    BigInt() : nums(), sign(0) { }
+    BigInt(int n) { set_num(n); }
+    BigInt(u n) { set_num(n); }
+    BigInt(ul n) { set_num(n); }
+    BigInt(const BigInt& other) : sign(other.sign) { nums = other.nums; }
+    BigInt(const str& s) : nums(), sign(0) {
+        ch sign = 1;
+        for (char c : s) {
+            if (c == '-')
+                sign = -1;
+            else {
+                *this *= 10;
+                *this += c - '0';
+            }
         }
-        this->neg = neg;
-        check_zero();
+        this->sign *= sign;
     }
 
     template<class T>
-    T vtoi() const {
+    void set_num(T n) {
+        nums.clear();
+        if (n == T()) {
+            sign = 0;
+            re;
+        }
+        if (n < T())
+            n = -n, sign = -1;
+        else
+            sign = 1;
+        while (n != T()) {
+            nums.pb(n);
+            n /= BASE;
+        }
+    }
+
+    template<class T>
+    T to_num() const {
         T res = 0;
         for (u i : nums)
-            res = res * (ul(1) << 32) + i;
-        if (neg) res = -res;
+            res = res * BASE + i;
+        res *= sign;
         re res;
     }
-    
-public:
-    BigInt() { zero(); }
-    BigInt(int n) { itov(n); }
-    BigInt(u n) { itov(n); }
-    BigInt(ll n) { itov(n); }
-    BigInt(ul n) { itov(n); }
-    BigInt(const str& s) { stov(s); }
-    BigInt(const V<u>& nums, bl neg) : nums(nums), neg(neg) {}
-    BigInt(const BigInt& other) : nums(other.nums), neg(other.neg) {}
 
-    size_t size() const { re sz(nums); }
-    bl is_neg() const { re neg; }
-    bl is_zero() const { re sz(nums) == 1 && !nums[0]; }
-
-    operator int() const { re vtoi<int>(); }
-    operator ll() const { re vtoi<ll>(); }
-    operator u() const { re vtoi<u>(); }
-    operator ul() const { re vtoi<ul>(); }
-    operator fl() const { re vtoi<fl>(); }
-    operator db() const { re vtoi<db>(); }
-    operator ld() const { re vtoi<ld>(); }
+    operator str() const {
+        str s;
+        BigInt n(*this);
+        n.sign = abs(n.sign);
+        do {
+            auto p = n.divide_with_remainder(10);
+            s += (p.se.sign ? p.se.nums[0] : 0) + '0';
+            n = p.fi;
+        } while (n.sign);
+        if (sign == -1)
+            s += '-';
+        reverse(all(s));
+        re s;
+    }
 
     BigInt& operator=(const BigInt& other) {
         nums = other.nums;
-        neg = other.neg;
+        sign = other.sign;
         re *this;
     }
 
-    u operator[](size_t i) const { re nums[i]; }
-
     bl operator==(const BigInt& other) const {
-        re neg == other.neg && nums == other.nums;
+        re sign == other.sign && nums == other.nums;
+    }
+
+    bl operator!=(const BigInt& other) const {
+        re sign != other.sign || nums != other.nums;
     }
 
     bl operator<(const BigInt& other) const {
-        if (neg != other.neg)
-            re neg > other.neg;
-        if (size() != other.size())
-            re size() < other.size();
-        f0rr(i,size())
-            if (nums[i] != other[i])
-                re nums[i] < other[i];
+        if (sign != other.sign)
+            re sign < other.sign;
+        if (sz(nums) != sz(other.nums))
+            re sz(nums) < sz(other.nums);
+        f0rr(i,sz(nums))
+            if (nums[i] != other.nums[i])
+                re (nums[i] < other.nums[i]) ^ (sign == -1);
         re 0;
     }
 
-    bl operator==(int other) const {
-        re size() == 1 && neg == (other < 0) && nums[0] == abs(ll(other));
+    bl operator>(const BigInt& other) const {
+        re other < *this;
     }
 
-    bl operator<(int other) const {
-        if (*this == other) re 0;
-        bl neg2 = other < 0;
-        if (neg != neg2) re neg > neg2;
-        ll num = neg2 ? -ll(other) : other;
-        re (size() == 1 && nums[0] < num) ^ neg;
+    bl operator<=(const BigInt& other) const {
+        re !(other < *this);
     }
 
-    bl operator>(const BigInt& other) const { re other < *this; }
-    bl operator!=(const BigInt& other) const { re !(*this == other); }
-    bl operator<=(const BigInt& other) const { re !(*this > other); }
-    bl operator>=(const BigInt& other) const { re !(*this < other); }
+    bl operator>=(const BigInt& other) const {
+        re !(*this < other);
+    }
 
-    bl operator>(int other) const { re !(*this < other) && !(*this == other); }
-    bl operator!=(int other) const { re !(*this == other); }
-    bl operator<=(int other) const { re !(*this > other); }
-    bl operator>=(int other) const { re !(*this < other); }
+    bl operator!=(int x) const { // for __gcd
+        re sz(nums) > 1 || (sign == 1 && nums[0] != x) || (sign == -1 && nums[0] != -ul(x)) || (!sign && !x);
+    }
 
     BigInt operator-() const {
         BigInt res(*this);
-        res.neg ^= 1;
-        res.check_zero();
-        re res;
-    }
-
-    friend BigInt abs(const BigInt& n) {
-        BigInt res(n);
-        res.neg = 0;
+        res.sign = -res.sign;
         re res;
     }
 
     BigInt& operator+=(const BigInt& other) {
-        if (!neg && other.neg) {
-            BigInt b(other);
-            b.neg = 0;
-            re operator-=(b);
-        }
-        if (neg && !other.neg) {
-            BigInt a(*this);
-            a.neg = 0;
-            BigInt b(other);
-            b -= a;
-            re *this = b;
-        }
-        V<u> a,b;
-        make_same_len(other,a,b);
-        bl rest = 0;
-        nums.clear();
+        if (!other.sign)
+            re *this;
+        if (!sign)
+            re *this = other;
+        if (sign != other.sign)
+            re *this -= -other;
+        V<u> a, b;
+        make_same_len(other, a, b);
+        bl carry = 0;
+        nums.resize(sz(a));
         f0r(i,sz(a)) {
-            ul sum = ul(a[i]) + ul(b[i]) + ul(rest);
-            if (sum > ~u()) {
-                rest = 1;
-                sum -= ul(1) << 32;
-            } else rest = 0;
-            nums.pb(sum);
+            ul sum = ul(a[i]) + b[i] + carry;
+            if (carry = sum > ~u(); carry)
+                sum -= BASE;
+            nums[i] = sum;
         }
-        if (rest) nums.pb(1);
-        check_zero();
+        if (carry)
+            nums.pb(1);
         re *this;
     }
 
     BigInt& operator-=(const BigInt& other) {
-        if (neg != other.neg) {
-            BigInt b(other);
-            b.neg ^= 1;
-            re operator+=(b);
-        }
-        if (*this == other) {
-            zero();
+        if (!other.sign)
+            re *this;
+        if (!sign) {
+            nums = other.nums;
+            sign = -other.sign;
             re *this;
         }
-        V<u> a,b;
-        make_same_len(other,a,b);
-        bl less = *this < other;
-        if (less) swap(a,b);
-        bl rest = 0;
-        nums.clear();
+        if (sign != other.sign)
+            re *this += -other;
+        if (nums == other.nums) {
+            nums.clear();
+            sign = 0;
+            re *this;
+        }
+        V<u> a, b;
+        make_same_len(other, a, b);
+        bl less = 0;
+        f0rr(i,sz(a))
+            if (a[i] != b[i]) {
+                less = a[i] < b[i]; break; }
+        if (less) {
+            swap(a,b);
+            sign = -sign;
+        }
+        bl carry = 0;
+        nums.resize(sz(a));
         f0r(i,sz(a)) {
-            nums.pb(a[i] - b[i] - rest);
-            rest = a[i] < ul(b[i]) + rest;
+            nums[i] = (a[i] - b[i] - carry);
+            carry = a[i] < ul(b[i]) + carry;
         }
         remove_leading_zeros();
-        neg ^= less;
-        check_zero();
         re *this;
     }
 
-    BigInt& operator*=(const BigInt& other) {
-        V<u> a = nums;
-        V<u> b = other.nums;
-        nums.assign(sz(a)+sz(b), 0);
+    BigInt& multiply_classic(const BigInt& other) {
+        if (!other.sign)
+            re *this = other;
+        if (!sign)
+            re *this;
+        sign *= other.sign;
+        V<u> a = nums, b = other.nums;
+        nums.assign(sz(a) + sz(b), 0);
         f0r(i,sz(a)) {
             u carry = 0;
             for (int j = 0; j < sz(b) || carry; ++j) {
-                ul cur = nums[i+j] + ul(a[i]) * ul(j < sz(b) ? b[j] : 0) + carry;
-                nums[i+j] = cur;
-                carry = cur > ~u() ? cur /= (ul(1) << 32) : 0;
+                ul mul = nums[i+j] + a[i] * ul(j < sz(b) ? b[j] : 0) + carry;
+                nums[i+j] = mul;
+                carry = mul >> 32;
             }
         }
         remove_leading_zeros();
-        neg ^= other.neg;
-        check_zero();
         re *this;
     }
 
-    P<BigInt,BigInt> divide_with_remainder(const BigInt& other) {
-        if (other.is_zero()) throw_divide_by_zero_exception();
-        if (is_zero()) re mp(BigInt{0},BigInt{0});
-        if (nums == other.nums) re mp(BigInt{(neg ^ other.neg) ? -1 : 1}, BigInt{0});
-        int i, lgcat = 0;
-        u cc;
-        V<u> cat(size(), 0);
+    #ifdef FFT_MULT
+    using base = complex<db>;
+
+    void fft(V<base>& a, bl inv) {
+        int n = sz(a);
+        for (int i = 1, j = 0; i < n; ++i) {
+            int bit = n >> 1;
+            for (; j & bit; bit >>= 1)
+                j ^= bit;
+            j ^= bit;
+            if (i < j)
+                swap(a[i], a[j]);
+        }
+        for (int len = 2; len <= n; len <<= 1) {
+            db ang = 2 * PI / len * (inv ? -1 : 1);
+            base wlen(cos(ang), sin(ang));
+            for (int i = 0; i < n; i += len) {
+                base w(1);
+                f0r(j,len/2) {
+                    base u = a[i+j], v = a[i+j+len/2] * w;
+                    a[i+j] = u + v;
+                    a[i+j+len/2] = u - v;
+                    w *= wlen;
+                }
+            }
+        }
+        if (inv)
+            for (base& x : a)
+                x /= n;
+    }
+
+    BigInt& multiply_fft(const BigInt& other) {
+        if (!other.sign)
+            re *this = other;
+        if (!sign)
+            re *this;
+        sign *= other.sign;
+        V<base> fa(sz(nums) * FFT_COUNT);
+        f0r(i,sz(nums))
+            f0r(j,FFT_COUNT)
+                fa[FFT_COUNT * i + j] = (nums[i] >> (j * FFT_LEN)) & FFT_MASK;
+        V<base> fb(sz(other.nums) * FFT_COUNT);
+        f0r(i,sz(other.nums))
+            f0r(j,FFT_COUNT)
+                fb[FFT_COUNT * i + j] = (other.nums[i] >> (j * FFT_LEN)) & FFT_MASK;
+        u n = 1;
+        while (n < max(sz(fa), sz(fb)))
+            n <<= 1;
+        n <<= 1;
+        fa.resize(n), fb.resize(n);
+        fft(fa, 0), fft(fb, 0);
+        f0r(i,n)
+            fa[i] *= fb[i];
+        fft(fa, 1);
+        nums.assign(n, 0);
+        ul carry = 0;
+        f0r(i,n) {
+            ul x = round(fa[i].real());
+            u y = (x & FFT_MASK) + (carry & FFT_MASK);
+            nums[i / FFT_COUNT] += (y & FFT_MASK) << ((i % FFT_COUNT) * FFT_LEN);
+            carry >>= FFT_LEN;
+            carry += (x >> FFT_LEN) + (y >> FFT_LEN);
+        }
+        remove_leading_zeros();
+        return *this;
+    }
+    #endif
+
+    BigInt& operator*=(const BigInt& other) {
+        #ifdef FFT_MULT
+        if (sz(nums) >= FFT_THRESHOLD && sz(other.nums) >= FFT_THRESHOLD)
+            re multiply_fft(other);
+        #endif
+        re multiply_classic(other);
+    }
+
+    P<BigInt, BigInt> divide_with_remainder(const BigInt& other) const {
+        assert(other.sign);
+        if (!sign)
+            re mp(BigInt(), BigInt());
+        if (nums == other.nums)
+            re mp(BigInt(sign * other.sign), BigInt());
         BigInt r;
-        BigInt base(ul(1) << 32);
+        BigInt base(BASE);
         BigInt b(other);
-        b.neg = 0;
-        for (i = size()-1; i >= 0 && r * base + BigInt(nums[i]) < b; --i) {
+        b.sign = 1;
+        int i = sz(nums) - 1;
+        while (i >= 0 && r * base + nums[i] < b) {
             r *= base;
-            r += nums[i];
+            r += nums[i--];
         }
+        u size = 0;
+        BigInt n;
+        n.nums.resize(sz(nums));
         for (; i >= 0; --i) {
-            r = r * base + BigInt(nums[i]);
-            cc = ~u();
-            if (BigInt(cc) * b > r)
-                cc = search::binary<ul>(0, ~u(), [&](ul cc) { re BigInt(cc) * b > r; }) - 1;
-            r -= BigInt(cc) * b;
-            cat[lgcat++] = cc;
+            r = r * base + nums[i];
+            u cc = ~u();
+            if (r < b * cc) {
+                u max = cc;
+                cc = 0;
+                while (cc < max) {
+                    u x = (ul(cc) + max) >> 1;
+                    if (r < b * x) max = x;
+                    else cc = x + 1;
+                }
+                --cc;
+            }
+            r -= b * cc;
+            n.nums[size++] = cc;
         }
-        BigInt n(*this);
-        n.nums.resize(sz(cat));
-        for (i = 0; i < lgcat; ++i)
-            n.nums[i] = cat[lgcat - i - 1];
-        n.nums.resize(lgcat);
-        if (!lgcat) n.zero();
-        else n.neg ^= other.neg;
-        if (n.size() == 1 && !n.nums[0]) n.neg = 0;
-        if (r.size() == 1 && !r.nums[0]) r.neg = 0;
-        else r.neg ^= other.neg;
-        n.check_zero();
-        r.check_zero();
-        re mp(n,r);
+        n.nums.resize(size);
+        reverse(all(n.nums));
+        if (!size) n.sign = 0;
+        else n.sign = sign * other.sign;
+        r.sign *= other.sign;
+        re mp(n, r);
     }
 
     BigInt& operator/=(const BigInt& other) {
@@ -1711,27 +1792,24 @@ public:
         re *this = divide_with_remainder(other).se;
     }
 
-    BigInt operator+(const BigInt& other) const { re BigInt(*this) += other; }
-    BigInt operator-(const BigInt& other) const { re BigInt(*this) -= other; }
-    BigInt operator*(const BigInt& other) const { re BigInt(*this) *= other; }
-    BigInt operator/(const BigInt& other) const { re BigInt(*this) /= other; }
-    BigInt operator%(const BigInt& other) const { re BigInt(*this) %= other; }
-
-    operator str() const {
-        str s;
-        BigInt n(*this);
-        int i = 0;
-        do {
-            s += (n % BigInt(10)).nums[0] + '0';
-            n /= 10;
-        } while (!n.is_zero());
-        if (neg) s += '-';
-        reverse(all(s));
-        re s;
+    BigInt operator+(const BigInt& other) const {
+        re BigInt(*this) += other;
     }
 
-    friend ostream& operator<<(ostream& out, const BigInt& n) {
-        re out << str(n);
+    BigInt operator-(const BigInt& other) const {
+        re BigInt(*this) -= other;
+    }
+
+    BigInt operator*(const BigInt& other) const {
+        re BigInt(*this) *= other;
+    }
+
+    BigInt operator/(const BigInt& other) const {
+        re BigInt(*this) /= other;
+    }
+
+    BigInt operator%(const BigInt& other) const {
+        re BigInt(*this) %= other;
     }
 };
 
