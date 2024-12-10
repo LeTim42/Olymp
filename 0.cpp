@@ -2266,7 +2266,7 @@ void _test() {
 
 void _settings() {
     _fastio = 1;
-    _multitest = 1;
+    _multitest = 0;
     #ifdef TEST
     _test();
     #endif
