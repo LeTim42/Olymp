@@ -1796,7 +1796,7 @@ public:
             carry += (res[i] >> FFT_LEN) + (x >> FFT_LEN);
         }
         remove_leading_zeros();
-        return *this;
+        re *this;
     }
     #endif
 
