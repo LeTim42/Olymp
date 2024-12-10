@@ -368,6 +368,67 @@ namespace mod {
         }
         re x;
     }
+
+    const int fft_mod = 998244353;
+    const int root = 15311432;
+    const int root_1 = 469870224; // rev(root, fft_mod)
+    const int root_pw = 1 << 23;
+
+    void fft(vi& a, bl inv) {
+        int n = sz(a);
+        for (int i = 1, j = 0; i < n; ++i) {
+            int bit = n >> 1;
+            for (; j & bit; bit >>= 1)
+                j ^= bit;
+            j ^= bit;
+            if (i < j)
+                swap(a[i], a[j]);
+        }
+        for (int len = 2; len <= n; len <<= 1) {
+            int wlen = inv ? root_1 : root;
+            for (int i = len; i < root_pw; i <<= 1)
+                wlen = mul(wlen, wlen, fft_mod);
+            for (int i = 0; i < n; i += len) {
+                int w = 1;
+                f0r(j,len/2) {
+                    int u = a[i+j], v = mul(a[i+j+len/2], w, fft_mod);
+                    a[i+j] = add(u, v, fft_mod);
+                    a[i+j+len/2] = sub(u, v, fft_mod);
+                    w = mul(w, wlen, fft_mod);
+                }
+            }
+        }
+        if (inv) {
+            int n_1 = rev(n, fft_mod);
+            for (int& x : a)
+                x = mul(x, n_1, fft_mod);
+        }
+    }
+
+    vi mul_fft(vi a, vi b) {
+        int m = 1;
+        while (m < sz(a) + sz(b))
+            m <<= 1;
+        m <<= 1;
+        a.resize(m), b.resize(m);
+        fft(a, 0), fft(b, 0);
+        f0r(i,m)
+            a[i] *= b[i];
+        fft(a, 1);
+        re a;
+    }
+
+    vi pow_fft(vi a, int n) {
+        int m = 1;
+        while (m < sz(a) * n)
+            m <<= 1;
+        a.resize(m);
+        fft(a, 0);
+        for (int& i : a)
+            i = pow(i, n, fft_mod);
+        fft(a, 1);
+        re a;
+    }
 }
 
 // Work with graphs
@@ -1448,7 +1509,7 @@ public:
 
 #define FFT_MULT
 #ifdef FFT_MULT
-const uint32_t FFT_THRESHOLD = 3000;
+const uint32_t FFT_THRESHOLD = 2800;
 const uint32_t FFT_LEN = 8;
 static_assert(32 % FFT_LEN == 0);
 const uint32_t FFT_COUNT = 32 / FFT_LEN;
@@ -1698,10 +1759,6 @@ public:
     }
 
     BigInt& multiply_fft(const BigInt& other) {
-        if (!other.sign)
-            re *this = other;
-        if (!sign)
-            re *this;
         sign *= other.sign;
         V<base> fa(sz(nums) * FFT_COUNT);
         f0r(i,sz(nums))
@@ -1712,9 +1769,8 @@ public:
             f0r(j,FFT_COUNT)
                 fb[FFT_COUNT * i + j] = (other.nums[i] >> (j * FFT_LEN)) & FFT_MASK;
         u n = 1;
-        while (n < max(sz(fa), sz(fb)))
+        while (n < sz(fa) + sz(fb))
             n <<= 1;
-        n <<= 1;
         fa.resize(n), fb.resize(n);
         fft(fa, 0), fft(fb, 0);
         f0r(i,n)
