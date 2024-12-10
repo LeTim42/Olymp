@@ -224,6 +224,53 @@ namespace other {
                 amax(a[i].se, a[j].se);
         a.resize(i+1);
     }
+
+    using base = complex<db>;
+
+    void fft(V<base>& a, bl inv) {
+        int n = sz(a);
+        for (int i = 1, j = 0; i < n; ++i) {
+            int bit = n >> 1;
+            for (; j & bit; bit >>= 1)
+                j ^= bit;
+            j ^= bit;
+            if (i < j)
+                swap(a[i], a[j]);
+        }
+        for (int len = 2; len <= n; len <<= 1) {
+            db ang = 2 * PI / len * (inv ? -1 : 1);
+            base wlen(cos(ang), sin(ang));
+            for (int i = 0; i < n; i += len) {
+                base w(1);
+                f0r(j,len/2) {
+                    base u = a[i+j], v = a[i+j+len/2] * w;
+                    a[i+j] = u + v;
+                    a[i+j+len/2] = u - v;
+                    w *= wlen;
+                }
+            }
+        }
+        if (inv)
+            for (base& x : a)
+                x /= n;
+    }
+
+    template<class R, class T>
+    V<R> mul_fft(const V<T>& a, const V<T>& b) {
+        V<base> fa(all(a)), fb(all(b));
+        int n = 1;
+        while (n < sz(fa) + sz(fb))
+            n <<= 1;
+        fa.resize(n), fb.resize(n);
+        fft(fa, 0), fft(fb, 0);
+        f0r(i,n)
+            fa[i] *= fb[i];
+        fft(fa, 1);
+        V<R> res(n);
+        f0r(i,n)
+            res[i] = round(fa[i].real());
+        re res;
+    }
 }
 
 // Some search functions
@@ -1728,62 +1775,25 @@ public:
     }
 
     #ifdef FFT_MULT
-    using base = complex<db>;
-
-    void fft(V<base>& a, bl inv) {
-        int n = sz(a);
-        for (int i = 1, j = 0; i < n; ++i) {
-            int bit = n >> 1;
-            for (; j & bit; bit >>= 1)
-                j ^= bit;
-            j ^= bit;
-            if (i < j)
-                swap(a[i], a[j]);
-        }
-        for (int len = 2; len <= n; len <<= 1) {
-            db ang = 2 * PI / len * (inv ? -1 : 1);
-            base wlen(cos(ang), sin(ang));
-            for (int i = 0; i < n; i += len) {
-                base w(1);
-                f0r(j,len/2) {
-                    base u = a[i+j], v = a[i+j+len/2] * w;
-                    a[i+j] = u + v;
-                    a[i+j+len/2] = u - v;
-                    w *= wlen;
-                }
-            }
-        }
-        if (inv)
-            for (base& x : a)
-                x /= n;
-    }
-
     BigInt& multiply_fft(const BigInt& other) {
         sign *= other.sign;
-        V<base> fa(sz(nums) * FFT_COUNT);
+        V<u> a(sz(nums) * FFT_COUNT);
         f0r(i,sz(nums))
             f0r(j,FFT_COUNT)
-                fa[FFT_COUNT * i + j] = (nums[i] >> (j * FFT_LEN)) & FFT_MASK;
-        V<base> fb(sz(other.nums) * FFT_COUNT);
+                a[FFT_COUNT * i + j] = (nums[i] >> (j * FFT_LEN)) & FFT_MASK;
+        V<u> b(sz(nums) * FFT_COUNT);
         f0r(i,sz(other.nums))
             f0r(j,FFT_COUNT)
-                fb[FFT_COUNT * i + j] = (other.nums[i] >> (j * FFT_LEN)) & FFT_MASK;
-        u n = 1;
-        while (n < sz(fa) + sz(fb))
-            n <<= 1;
-        fa.resize(n), fb.resize(n);
-        fft(fa, 0), fft(fb, 0);
-        f0r(i,n)
-            fa[i] *= fb[i];
-        fft(fa, 1);
-        nums.assign(n, 0);
+                b[FFT_COUNT * i + j] = (other.nums[i] >> (j * FFT_LEN)) & FFT_MASK;
+        auto res = other::mul_fft<ul>(a,b);
+        u n = sz(res);
+        nums.assign(n,0);
         ul carry = 0;
         f0r(i,n) {
-            ul x = round(fa[i].real());
-            u y = (x & FFT_MASK) + (carry & FFT_MASK);
-            nums[i / FFT_COUNT] += (y & FFT_MASK) << ((i % FFT_COUNT) * FFT_LEN);
+            u x = (res[i] & FFT_MASK) + (carry & FFT_MASK);
+            nums[i / FFT_COUNT] += (x & FFT_MASK) << ((i % FFT_COUNT) * FFT_LEN);
             carry >>= FFT_LEN;
-            carry += (x >> FFT_LEN) + (y >> FFT_LEN);
+            carry += (res[i] >> FFT_LEN) + (x >> FFT_LEN);
         }
         remove_leading_zeros();
         return *this;
@@ -2256,7 +2266,7 @@ void _test() {
 
 void _settings() {
     _fastio = 1;
-    _multitest = 0;
+    _multitest = 1;
     #ifdef TEST
     _test();
     #endif
