@@ -34,6 +34,8 @@
 #define mp make_pair
 #define be begin()
 #define en end()
+#define fr front()
+#define ba back()
 #define amin(a,b) (a = min(a,b))
 #define amax(a,b) (a = max(a,b))
 #define sz(a) ((int)(a).size())
