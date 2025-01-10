@@ -68,6 +68,7 @@
 #define f0rbit(a,i,n) f0r(i,(n)) if (bit((a),i))
 #define rep(i,s,n) for (int i = (s); i < (n); ++i)
 #define repr(i,s,n) for (int i = (n)-1; i >= (s); --i)
+#define brk(...) { __VA_ARGS__; break; }
 #define ever for(;;)
 
 using namespace std;
@@ -171,7 +172,7 @@ template<class T> T abs(const T& a) { re a > 0 ? a : -a; }
 template<class T1, class T2> T1_2 min(const T1& a, const T2& b) { re a < b ? a : b; }
 template<class T1, class T2> T1_2 max(const T1& a, const T2& b) { re a > b ? a : b; }
 
-void throw_divide_by_zero_exception() { vi a(2); cout << (a.front() + 1) / a.back(); }
+void throw_divide_by_zero_exception() { vi a(2); cout << (a.fr + 1) / a.ba; }
 
 const int iINF = 2000000007;
 const ll INF = 2000000000000000007;
@@ -331,11 +332,11 @@ namespace mod {
     int MOD = 1000000007;
 
     int add(int a, int b, int m = MOD) {
-        re (a + b) % m;
+        re (ll(a) + b) % m;
     }
 
     int sub(int a, int b, int m = MOD) {
-        re (a - b + m) % m;
+        re (ll(a) - b + m) % m;
     }
 
     int mul(int a, int b, int m = MOD) {
@@ -1185,7 +1186,7 @@ namespace geom {
         });
         V<Point<F>> hull;
         for (const Point<F>& p : points) {
-            while (sz(hull) > 1 && ((hull.back() - hull[sz(hull)-2]) ^ (p - hull.back())) <= F())
+            while (sz(hull) > 1 && ((hull.ba - hull[sz(hull)-2]) ^ (p - hull.ba)) <= F())
                 hull.pp();
             hull.pb(p);
         }
@@ -1198,8 +1199,10 @@ private:
     struct state {
         vi next;
         int len, link;
+        #define DONT_CLEAN
         bl is_clon;
         int first_pos;
+        #undef DONT_CLEAN
     };
 
     const ch F;
@@ -1258,6 +1261,22 @@ namespace strings {
             p[i] = j;
         }
         re p;
+    }
+
+    // returns z-function of string
+    // z[i] = k -> max length k of prefix of string that is equal to prefix of substring [i; n)
+    vi z_function(const str& s) {
+        int n = sz(s);
+        vi z(n);
+        for (int i = 1, l = 0, r = 0; i < n; ++i) {
+            if (i <= r)
+                z[i] = min(r-i+1, z[i-l]);
+            while (i+z[i] < n && s[z[i]] == s[i+z[i]])
+                ++z[i];
+            if (i+z[i]-1 > r)
+                l = i, r = i+z[i]-1;
+        }
+        re z;
     }
 
     // finds all palindromes in string
@@ -1422,10 +1441,6 @@ public:
         re -1;
     }
 
-    operator bl() const {
-        re any();
-    }
-
     Bitset& operator=(const Bitset& b) {
         n = b.n;
         m = b.m;
@@ -1576,7 +1591,7 @@ private:
     const ul BASE = ul(1) << 32; // DO NOT CHANGE!
 
     void remove_leading_zeros() {
-        while (sz(nums) && !nums.back())
+        while (sz(nums) && !nums.ba)
             nums.pp();
         if (!sz(nums))
             sign = 0;
@@ -1598,6 +1613,7 @@ public:
     BigInt() : nums(), sign(0) { }
     BigInt(int n) { set_num(n); }
     BigInt(u n) { set_num(n); }
+    BigInt(ll n) { set_num(n); }
     BigInt(ul n) { set_num(n); }
     BigInt(const BigInt& other) : sign(other.sign) { nums = other.nums; }
     BigInt(const str& s) : nums(), sign(0) {
@@ -1639,15 +1655,48 @@ public:
         re res;
     }
 
-    operator str() const {
+    friend BigInt pow(BigInt a, BigInt n) {
+        BigInt x = 1;
+        while (n.sign) {
+            auto p = n.divide_with_remainder(2);
+            if (p.se.sign) x *= a;
+            a *= a;
+            n = p.fi;
+        }
+        re x;
+    }
+
+    str naive_base(BigInt x, int base) const {
         str s;
+        do {
+            auto p = x.divide_with_remainder(10);
+            s += (p.se.sign ? p.se.nums[0] : 0) + '0';
+            x = p.fi;
+        } while (x.sign);
+        re s;
+    }
+
+    str fast_base(const BigInt& x, int base, int order = -1) const {
+        if (order == -1) {
+            order = 1;
+            BigInt b(base);
+            while (b * base <= x) {
+                b *= b;
+                order *= 2;
+            }
+        }
+        if (!order) re naive_base(x, base);
+        BigInt sep = pow(BigInt(base), order);
+        auto p = x.divide_with_remainder(sep);
+        re fast_base(p.se, base, order / 2) + fast_base(p.fi, base, order / 2);
+    }
+
+    operator str() const {
         BigInt n(*this);
         n.sign = abs(n.sign);
-        do {
-            auto p = n.divide_with_remainder(10);
-            s += (p.se.sign ? p.se.nums[0] : 0) + '0';
-            n = p.fi;
-        } while (n.sign);
+        str s = fast_base(n, 10);
+        while (sz(s) > 1 && s.ba == '0')
+            s.pp();
         if (sign == -1)
             s += '-';
         reverse(all(s));
