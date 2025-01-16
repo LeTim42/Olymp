@@ -59,6 +59,8 @@
 #define lbit(a) (__lg((a)))
 #define rbit(a) (lbit((a)&-(a)))
 #define lambda(ret,name,args...) const function<ret(args)> name = [&](args) -> ret
+#define opin(class, name) istream& operator>>(istream& in, class& name)
+#define opout(class, name) ostream& operator<<(ostream& out, const class& name)
 #define uid uniform_int_distribution
 #define urd uniform_real_distribution
 #define f0r(i,n) for (int i = 0; i < (n); ++i)
@@ -70,6 +72,7 @@
 #define repr(i,s,n) for (int i = (n)-1; i >= (s); --i)
 #define brk(...) { __VA_ARGS__; break; }
 #define ever for(;;)
+#define COMMA ,
 
 using namespace std;
 
@@ -111,12 +114,14 @@ typedef V<vc> vvc;
 typedef V<vs> vvs;
 typedef V<vii> vvii;
 
+#define DONT_CLEAN
 template<class T> istream& operator>>(istream&,V<T>&);
 template<class T> ostream& operator<<(ostream&,const V<T>&);
-template<class T1, class T2> istream& operator>>(istream& in, P<T1,T2>& a) { re in >> a.fi >> a.se; }
-template<class T1, class T2> ostream& operator<<(ostream& out, const P<T1,T2>& a) { re out << a.fi << ' ' << a.se; }
-template<class T> istream& operator>>(istream& in, V<T>& a) { for (T& x : a) in >> x; re in; }
-template<class T> ostream& operator<<(ostream& out, const V<T>& a) { for (const T& x : a) out << x << ' '; re out; }
+template<class T1, class T2> opin(P<T1 COMMA T2>, a) { re in >> a.fi >> a.se; }
+template<class T1, class T2> opout(P<T1 COMMA T2>, a) { re out << a.fi << ' ' << a.se; }
+template<class T> opin(V<T>, a) { for (T& x : a) in >> x; re in; }
+template<class T> opout(V<T>, a) { for (const T& x : a) out << x << ' '; re out; }
+#undef DONT_CLEAN
 template<class T1, class T2> void print(const P<T1,T2>& a, char sep = '\n', ostream& out = cout) { out << a.fi << sep << a.se; }
 template<class T1, class T2> void print1(const P<T1,T2>& a, char sep = '\n', ostream& out = cout) { out << a.fi+1 << sep << a.se+1; }
 template<class T> void print(const T& a, char sep = '\n', ostream& out = cout) { for (auto& x : a) out << x << sep; }
@@ -138,7 +143,6 @@ template<typename ...P> void _inp(P &&... params) { (void(cin >> forward<P>(para
 #define inp(T,...) T __VA_ARGS__; _inp(__VA_ARGS__)
 #define inpv(T,n,a) int n; cin >> n; V<T> a(n); cin >> a
 #define inpvv(T,n,m,a) int n, m; cin >> n >> m; V<V<T>> a(n,V<T>(m)); cin >> a
-#define COMMA ,
 
 #ifdef LOCAL
 str _tab = "";
@@ -154,7 +158,7 @@ struct TAB_HELPER {
 #define EXPAND1(...) __VA_ARGS__
 #define DIN TAB_HELPER _tab_helper;
 #define DEB(...) { cout << _tab; __VA_OPT__(EXPAND(DEB_HELPER(__VA_ARGS__))) cout << endl; }
-#define DEB_HELPER(var, ...) cout << ">> " << #var << " = " << var << " "; __VA_OPT__(DEB_HELPER_2 PARENS (__VA_ARGS__))
+#define DEB_HELPER(var, ...) cout << ">> " << #var << " = " << (var) << " "; __VA_OPT__(DEB_HELPER_2 PARENS (__VA_ARGS__))
 #define DEB_HELPER_2() DEB_HELPER
 #else
 #define DEB(...) ;
@@ -314,13 +318,30 @@ namespace search {
         re binary<T>(x-(step>>1),r,f);
     }
 
+    // returns x in [l; r] for which value of unimodal funciton f(x) is maximal (or minimal if cmp = less<T>())
+    template<class T, class R>
+    T ternary(T l, T r, const function<R(T)>& f, const function<bl(R,R)>& cmp = greater<R>()) {
+        while (r - l >= 3) {
+            T x1 = l+(r-l)/3;
+            T x2 = r-(r-l)/3;
+            if (cmp(f(x1),f(x2))) r = x2;
+            else l = x1;
+        }
+        T x = l;
+        R y = f(l);
+        rep(x2,l+1,r)
+            if (R y2 = f(x2); cmp(y2,y))
+                x = x2, y = y2;
+        re x;
+    }
+
     // returns x with precision eps in [l; r] for which value of unimodal funciton f(x) is maximal (or minimal if cmp = less<T>())
     template<class T, class R>
     T ternary_real(T l, T r, const function<R(T)>& f, const function<bl(R,R)>& cmp = greater<R>(), T eps = 1e-8, int count = 100) {
         for (int i = 0; i < count && r-l > eps; ++i) {
             T x1 = l+(r-l)/3;
             T x2 = r-(r-l)/3;
-            if (c(f(x1),f(x2))) r = x2;
+            if (cmp(f(x1),f(x2))) r = x2;
             else l = x1;
         }
         re r;
@@ -1511,6 +1532,10 @@ public:
     Bitset& operator>>=(size_t shift) {
         if (!m) re *this;
         const size_t d = shift/64;
+        if (m < d) {
+            a.assign(m,0);
+            re *this;
+        }
         const size_t r = shift%64;
         const size_t l = m-d;
         if (r) {
@@ -1658,12 +1683,17 @@ public:
     friend BigInt pow(BigInt a, BigInt n) {
         BigInt x = 1;
         while (n.sign) {
-            auto p = n.divide_with_remainder(2);
-            if (p.se.sign) x *= a;
+            if (n.nums[0] % 2) x *= a;
             a *= a;
-            n = p.fi;
+            n >>= 1;
         }
         re x;
+    }
+
+    friend BigInt sqrt(BigInt x) {
+        BigInt res = x, tmp = (x + BigInt(1)) >> 1;
+        while (tmp < res) res = tmp, tmp = (tmp + x / tmp) >> 1;
+        re res;
     }
 
     str naive_base(BigInt x, int base) const {
@@ -1742,6 +1772,46 @@ public:
 
     bl operator!=(int x) const { // for __gcd
         re sz(nums) > 1 || (sign == 1 && nums[0] != x) || (sign == -1 && nums[0] != -ul(x)) || (!sign && !x);
+    }
+
+    BigInt& operator>>=(size_t shift) {
+        int m = sz(nums);
+        if (!m) re *this;
+        const size_t d = shift/32;
+        if (m < d) {
+            nums.clear();
+            sign = 0;
+            re *this;
+        }
+        const size_t r = shift%32;
+        const size_t l = m-d;
+        if (r) {
+            const size_t s = 32-r;
+            f0r(i,l-1)
+                nums[i] = (nums[i+d] >> r) | (nums[i+d+1] << s);
+            nums[l-1] = nums[m-1] >> r;
+        } else f0r(i,l) nums[i] = nums[i+d];
+        nums.resize(l);
+        remove_leading_zeros();
+        re *this;
+    }
+
+    BigInt& operator<<=(size_t shift) {
+        int m = sz(nums);
+        if (!m) re *this;
+        const size_t d = shift/32;
+        const size_t r = shift%32;
+        m += d+1;
+        nums.resize(m);
+        if (r) {
+            const size_t s = 32-r;
+            repr(i,d+1,m)
+                nums[i] = (nums[i-d] << r) | (nums[i-d-1] >> s);
+            nums[d] = nums[0] << r;
+        } else repr(i,int(d),m) nums[i] = nums[i-d];
+        f0r(i,d) nums[i] = 0;
+        remove_leading_zeros();
+        re *this;
     }
 
     BigInt operator-() const {
@@ -1909,6 +1979,14 @@ public:
 
     BigInt& operator%=(const BigInt& other) {
         re *this = divide_with_remainder(other).se;
+    }
+
+    BigInt operator>>(size_t shift) const {
+        re BigInt(*this) >>= shift;
+    }
+
+    BigInt operator<<(size_t shift) const {
+        re BigInt(*this) <<= shift;
     }
 
     BigInt operator+(const BigInt& other) const {
