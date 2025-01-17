@@ -563,6 +563,24 @@ namespace graph {
         re res;
     }
 
+    vvi list_to_matrix(const vvi& g) {
+        int n = sz(g);
+        vvi res(n,vi(n));
+        f0r(u,n)
+            for (int v : g[u])
+                ++res[u][v];
+        re res;
+    }
+
+    vvi matrix_to_list(const vvi& g) {
+        int n = sz(g);
+        vvi res(n);
+        f0r(u,n) f0r(v,n)
+            f0r(i,g[u][v])
+                res[u].pb(v);
+        re res;
+    }
+
     // Heavy-Light Decomposition
     class HLD {
     public:
@@ -787,6 +805,81 @@ namespace graph {
             if (!was[i])
                 dfs(i,-1);
         re vi(all(res));
+    }
+
+    vi euler_cycle(vvi g, bl orient = 0, bl is_matrix = 1) {
+        if (!is_matrix)
+            g = list_to_matrix(g);
+        int n = sz(g);
+        int first = -1, m = 0;
+        f0rr(i,n) f0r(j,n)
+            if (g[i][j])
+                first = i, m += g[i][j];
+        if (first == -1) re {};
+        vi last(n);
+        stack<int> st;
+        st.push(first);
+        vi res;
+        res.reserve(m+1);
+        while (sz(st)) {
+            int u = st.top();
+            int& v = last[u];
+            while (v < n && !g[u][v]) ++v;
+            if (v == n) {
+                res.pb(u);
+                st.pop();
+            } else {
+                --g[u][v];
+                if (!orient)
+                    --g[v][u];
+                st.push(v);
+            }
+        }
+        reverse(all(res));
+        re sz(res) == m+1 ? res : vi{};
+    }
+
+    vi euler_path(vvi g, bl orient = 0, bl is_matrix = 1) {
+        if (!is_matrix)
+            g = list_to_matrix(g);
+        int n = sz(g);
+        vi deg(n);
+        f0r(i,n) f0r(j,n) {
+            deg[i] += g[i][j];
+            if (orient)
+                deg[j] -= g[i][j];
+        }
+        int v1 = -1, v2 = -1;
+        f0r(i,n)
+            if (orient) {
+                if (deg[i] == 1) {
+                    if (v1 == -1) v1 = i;
+                    else re {};
+                } else if (deg[i] == -1) {
+                    if (v2 == -1) v2 = i;
+                    else re {};
+                } else if (deg[i]) re {};
+            } else if (deg[i] & 1) {
+                if (v1 == -1) v1 = i;
+                else if (v2 == -1) v2 = i;
+                else re {};
+            }
+        if (v1 == -1 || v2 == -1) re {};
+        ++g[v2][v1];
+        if (!orient)
+            ++g[v1][v2];
+        vi res = euler_cycle(g,orient);
+        f0r1(i,sz(res)) {
+            if ((res[i-1] == v2 && res[i] == v1) || (!orient && res[i-1] == v1 && res[i] == v2)) {
+                vi res2;
+                res2.reserve(sz(res));
+                res2.insert(res2.en, res.be+i, res.en);
+                res2.insert(res2.en, res.be+1, res.be+i);
+                re res2;
+            }
+        }
+        assert(!sz(res));
+        re res;
     }
 }
 
@@ -1095,7 +1188,7 @@ namespace geom {
         if (l.ab == Point<F2>()) re p == l.a;
         auto a = l.a - p, b = l.b() - p;
         auto s = a ^ b;
-        if (s == decltype(s)()) re 0;
+        if (s != decltype(s)()) re 0;
         if (l.t == LINE) re 1;
         if (l.t == SEGMENT) {
             auto s = a * b;
