@@ -159,7 +159,6 @@ private:
     }
 
     space get_space(char type = 0) {
-        std::cout << tokens[i].line << std::endl;
         i += type == 1;
         space s{type, tokens[i+1].value, start};
         start = SIZE_MAX;
