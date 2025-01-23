@@ -65,9 +65,12 @@ private:
             std::string value = "";
             for (char c : lines[line]) {
                 if (end_char) {
-                    if (c == end_char && !screening)
+                    if (screening)
+                        screening = false;
+                    else if (c == end_char)
                         end_char = 0;
-                    else screening = c == '\\';
+                    else
+                        screening = c == '\\';
                     continue;
                 }
                 if (is_letter_or_digit(c)) {
@@ -156,6 +159,7 @@ private:
     }
 
     space get_space(char type = 0) {
+        std::cout << tokens[i].line << std::endl;
         i += type == 1;
         space s{type, tokens[i+1].value, start};
         start = SIZE_MAX;
