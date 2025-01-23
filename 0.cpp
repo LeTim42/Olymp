@@ -1494,6 +1494,17 @@ public:
         re *this;
     }
 
+    Bitset& resize(size_t _n) {
+        n = _n;
+        r = n & 63;
+        m = (n >> 6) + (r != 0);
+        if (!r) r = 64;
+        extra = ~0ull >> (64-r);
+        a.resize(m,0);
+        if (m) a[m-1] &= extra;
+        re *this;
+    }
+
     bl every() const {
         if (!m) re 0;
         f0r(i,m-1) if (a[i] != ~0ull) re 0;
@@ -1607,6 +1618,7 @@ public:
     Bitset& operator&=(const Bitset& b) {
         assert(n >= b.n);
         f0r(i,b.m) a[i] &= b.a[i];
+        rep(i,b.m,m) a[i] = 0;
         re *this;
     }
 
