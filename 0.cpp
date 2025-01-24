@@ -1876,7 +1876,7 @@ public:
     }
 
     bl operator!=(int x) const { // for __gcd
-        re sz(nums) > 1 || (sign == 1 && nums[0] != x) || (sign == -1 && nums[0] != -ul(x)) || (!sign && !x);
+        re sz(nums) > 1 || (sign == 1 && nums[0] != x) || (sign == -1 && nums[0] != -ul(x)) || (!sign && x);
     }
 
     BigInt& operator>>=(size_t shift) {
