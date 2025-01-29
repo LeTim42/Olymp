@@ -1103,7 +1103,7 @@ namespace rnd {
 
 // Work with geometry
 namespace geom {
-    const db EPS = 1e-14;
+    const db EPS = 1e-8;
 
     // Double with eps precision on comparisons
     struct F {
