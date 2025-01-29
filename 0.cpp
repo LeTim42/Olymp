@@ -172,7 +172,7 @@ template<class T = int> T fmax(const T& a, const T& b) { re max(a,b); }
 #define T1_2 decltype(T1()+T2())
 template<class T> T sq(const T& a) { re a * a; }
 template<class T> ll sqll(const T& a) { re ll(a) * a; }
-template<class T> T abs(const T& a) { re a > 0 ? a : -a; }
+template<class T> T abs(const T& a) { re a > T(0) ? a : -a; }
 template<class T1, class T2> T1_2 min(const T1& a, const T2& b) { re a < b ? a : b; }
 template<class T1, class T2> T1_2 max(const T1& a, const T2& b) { re a > b ? a : b; }
 
@@ -504,6 +504,33 @@ namespace mod {
     }
 }
 
+// Disjoint Set Union
+class DSU {
+private:
+    vi p, h;
+public:
+    DSU(int n) {
+        p = vi(n);
+        h = vi(n);
+        iota(all(p),0);
+    }
+    
+    int find(int x) {
+        re x == p[x] ? x : p[x] = find(p[x]);
+    }
+    
+    bl merge(int a, int b) {
+        a = find(a);
+        b = find(b);
+        if (a == b) re 0;
+        if (h[a] < h[b])
+            swap(a,b);
+        p[b] = a;
+        h[a] += h[a] == h[b];
+        re 1;
+    }
+};
+
 // Work with graphs
 namespace graph {
     // returns graph adjacency lists from edges list
@@ -518,7 +545,7 @@ namespace graph {
 
     // returns weighted graph adjacency lists from edges list with weights
     template<class T = int>
-    V<V<P<int,T>>> createW(int n, const V<P<pii,T>>& e, bl orient = 0, int first_index = 1) {
+    V<V<P<int,T>>> create(int n, const V<P<pii,T>>& e, bl orient = 0, int first_index = 1) {
         V<V<P<int,T>>> g(n);
         for (auto p : e) {
             g[p.fi.fi-=first_index].pb(mp(p.fi.se-=first_index, p.se));
@@ -546,7 +573,7 @@ namespace graph {
 
     // returns edges list with weights from weighted graph adjacency lists
     template<class T = int>
-    V<P<pii,T>> edgesW(const V<V<P<int,T>>>& g, bl orient = 0, int first_index = 1) {
+    V<P<pii,T>> edges(const V<V<P<int,T>>>& g, bl orient = 0, int first_index = 1) {
         int n = sz(g);
         V<P<pii,T>> res;
         vi a(n);
@@ -807,6 +834,22 @@ namespace graph {
         re vi(all(res));
     }
 
+    V<P<pii,int>> kruskal(int n, V<P<pii,int>> e, int first_index = 1) {
+        sort(all(e), [](const P<pii,int>& lhs, const P<pii,int>& rhs) {
+            re lhs.se < rhs.se;
+        });
+        V<P<pii,int>> res;
+        DSU dsu(n);
+        for (const auto& p : e)
+            if (dsu.merge(p.fi.fi - first_index, p.fi.se - first_index))
+                res.pb(p);
+        re res;
+    }
+
+    V<P<pii,int>> kruskal(const vvii& g) {
+        re kruskal(sz(g), edges(g,0,0), 0);
+    }
+
     vi euler_cycle(vvi g, bl orient = 0, bl is_matrix = 1) {
         if (!is_matrix)
             g = list_to_matrix(g);
@@ -1060,7 +1103,7 @@ namespace rnd {
 
 // Work with geometry
 namespace geom {
-    const db EPS = 1e-8;
+    const db EPS = 1e-14;
 
     // Double with eps precision on comparisons
     struct F {
@@ -1076,8 +1119,9 @@ namespace geom {
         F& operator*=(const F& f) { x *= f.x; re *this; }
         F& operator/=(const F& f) { x /= f.x; re *this; }
 
-        friend istream& operator>>(istream& in, F& f) { re in >> f.x; }
-        friend ostream& operator<<(ostream& out, const F& f) { re out << f.x; }
+        friend opin(F,f) { re in >> f.x; }
+        friend opout(F,f) { re out << f.x; }
+        friend F sqrt(const F& f) { re F(sqrt(f.x)); }
 
         F operator-() const { re F(-x); }
         F operator+(const F& f) const { re F(x + f.x); }
@@ -1106,8 +1150,8 @@ namespace geom {
         template<class F1> Point<F>& operator*=(const F1& factor) { x *= factor; y *= factor; re *this; }
         template<class F1> Point<F>& operator/=(const F1& factor) { x /= factor; y /= factor; re *this; }
 
-        friend istream& operator>>(istream& in, Point<F>& p) { re in >> p.x >> p.y; }
-        friend ostream& operator<<(ostream& out, const Point<F>& p) { re out << p.x << ' ' << p.y; }
+        friend opin(Point<F>,p) { re in >> p.x >> p.y; }
+        friend opout(Point<F>,p) { re out << p.x << ' ' << p.y; }
     };
 
     #define DONT_CLEAN
@@ -2214,33 +2258,6 @@ public:
 
     friend ostream& operator<<(ostream& out, const Rational<T>& x) {
         re out << x.n << '/' << x.d;
-    }
-};
-
-// Disjoint Set Union
-class DSU {
-private:
-    vi p, h;
-public:
-    DSU(int n) {
-        p = vi(n);
-        h = vi(n);
-        iota(all(p),0);
-    }
-    
-    int find(int x) {
-        re x == p[x] ? x : p[x] = find(p[x]);
-    }
-    
-    bl merge(int a, int b) {
-        a = find(a);
-        b = find(b);
-        if (a == b) re 0;
-        if (h[a] < h[b])
-            swap(a,b);
-        p[b] = a;
-        h[a] += h[a] == h[b];
-        re 1;
     }
 };
 
