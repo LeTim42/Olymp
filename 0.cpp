@@ -670,25 +670,20 @@ namespace graph {
     V<T> dijkstra(const V<V<P<int,T>>>& g, int s, T NIL = iINF) {
         int n = sz(g);
         V<T> d(n, NIL);
-        auto cmp = [&](T a, T b) {
-            if (d[a] == d[b])
-                re a < b;
-            re d[a] < d[b];
-        };
-        set<int,decltype(cmp)> q(cmp);
+        priority_queue<P<T,int>, V<P<T,int>>, greater<>> pq;
         d[s] = 0;
-        q.insert(s);
-        while (sz(q)) {
-            auto it = q.be;
-            int u = *it;
-            q.erase(it);
-            for (P<int,T> p : g[u]) {
+        pq.push(mp(0,s));
+        while (sz(pq)) {
+            auto p = pq.top();
+            pq.pop();
+            int u = p.se;
+            if (p.fi > d[u]) continue;
+            for (auto p : g[u]) {
                 int v = p.fi;
                 T w = p.se;
                 if (d[u] + w < d[v]) {
-                    q.erase(v);
                     d[v] = d[u] + w;
-                    q.insert(v);
+                    pq.push(mp(d[v],v));
                 }
             }
         }
@@ -858,7 +853,9 @@ namespace graph {
         f0rr(i,n) f0r(j,n)
             if (g[i][j])
                 first = i, m += g[i][j];
+        if (!m) re {0};
         if (first == -1) re {};
+        if (!orient) m /= 2;
         vi last(n);
         stack<int> st;
         st.push(first);
@@ -1405,6 +1402,56 @@ public:
     }
 };
 
+class Eertree {
+private:
+    struct state {
+        vi next;
+        int len, link;
+    };
+
+    const ch F;
+    const int C;
+
+public:
+    V<state> st;
+    int last, k;
+    str s;
+
+    Eertree(ch first_char = 'a', ch last_char = 'z') : F(first_char), C(last_char - first_char + 1), last(0), k(0) {
+        st = {state{vi(C), 0, 1}, state{vi(C), -1, 1}};
+        s.assign(1, C);
+    }
+
+    void build(const str& s) {
+        this->s.reserve(sz(s) + 1);
+        for (ch c : s)
+            add(c);
+    }
+
+    int find_link(int v) const {
+        while (s[k - st[v].len - 1] != s[k])
+            v = st[v].link;
+        re v;
+    }
+
+    void add(ch c) {
+        ++k;
+        c -= F;
+        s += c;
+        int q = find_link(last);
+        if (st[q].next[c]) {
+            last = st[q].next[c];
+            re;
+        }
+        st.pb(state{vi(C), st[q].len + 2, st[find_link(st[q].link)].next[c]});
+        st[q].next[c] = last = sz(st) - 1;
+    }
+
+    int next(int v, ch c) const {
+        re st[v].next[c-F];
+    }
+};
+
 namespace strings {
     // returns prefix-function of string
     // p[i] = k -> max length k < i of prefix of string that is equal to suffix of substring [0; i]
@@ -1438,8 +1485,8 @@ namespace strings {
     }
 
     // finds all palindromes in string
-    // d.first[i] = k -> substrings [i-j+1; i+j-1] are palindromes of length 2 * j - 1 for all j = [1; k]
-    // d.second[i] = k -> substrings [i-j; i+j-1] are palindromes of length 2 * j for all j = [1; k]
+    // d.first[i] = k -> substrings [i-j+1; i+j-1] are palindromes of length 2 * j - 1 for all j in [1; k]
+    // d.second[i] = k -> substrings [i-j; i+j-1] are palindromes of length 2 * j for all j in [1; k]
     P<vi,vi> manacher(const str& s) {
         int n = sz(s);
         P<vi,vi> d{vi(n),vi(n)};
