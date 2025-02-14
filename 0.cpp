@@ -20,6 +20,7 @@
 #include <ctime>
 #include <random>
 #include <complex>
+#include <ext/pb_ds/assoc_container.hpp>
 #ifdef LOCAL
 #include <thread>
 #include <future>
@@ -63,6 +64,8 @@
 #define opout(class, name) ostream& operator<<(ostream& out, const class& name)
 #define uid uniform_int_distribution
 #define urd uniform_real_distribution
+#define uset unordered_set
+#define umap unordered_map
 #define f0r(i,n) for (int i = 0; i < (n); ++i)
 #define f0rr(i,n) for (int i = (n)-1; i >= 0; --i)
 #define f0r1(i,n) for (int i = 1; i < (n); ++i)
@@ -84,12 +87,14 @@ typedef float fl;
 typedef double db;
 typedef long double ld;
 typedef unsigned int uint;
+typedef unsigned char uch;
 typedef string str;
 typedef stringstream sstr;
 typedef P<int,int> pii;
 typedef P<ll,ll> pll;
 typedef P<db,db> pdd;
 typedef P<ld,ld> pld;
+typedef P<ch,ch> pcc;
 typedef P<str,str> pss;
 typedef P<int,ll> pill;
 typedef P<ll,int> plli;
@@ -113,6 +118,7 @@ typedef V<vb> vvb;
 typedef V<vc> vvc;
 typedef V<vs> vvs;
 typedef V<vii> vvii;
+typedef __gnu_pbds::tree<int, __gnu_pbds::null_type, less<int>, __gnu_pbds::rb_tree_tag, __gnu_pbds::tree_order_statistics_node_update> ordered_set;
 
 #define DONT_CLEAN
 template<class T> istream& operator>>(istream&,V<T>&);
