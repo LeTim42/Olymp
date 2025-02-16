@@ -78,6 +78,7 @@
 #define COMMA ,
 
 using namespace std;
+template<class T> using oset = __gnu_pbds::tree<T, __gnu_pbds::null_type, less<T>, __gnu_pbds::rb_tree_tag, __gnu_pbds::tree_order_statistics_node_update>;
 
 typedef long long ll;
 typedef unsigned long long ull;
@@ -118,7 +119,6 @@ typedef V<vb> vvb;
 typedef V<vc> vvc;
 typedef V<vs> vvs;
 typedef V<vii> vvii;
-typedef __gnu_pbds::tree<int, __gnu_pbds::null_type, less<int>, __gnu_pbds::rb_tree_tag, __gnu_pbds::tree_order_statistics_node_update> ordered_set;
 
 #define DONT_CLEAN
 template<class T> istream& operator>>(istream&,V<T>&);
