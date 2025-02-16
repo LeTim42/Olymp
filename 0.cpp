@@ -363,7 +363,7 @@ namespace mod {
     }
 
     int sub(int a, int b, int m = MOD) {
-        re (ll(a) - b + m) % m;
+        re ((ll(a) - b) % m + ll(m)) % m;
     }
 
     int mul(int a, int b, int m = MOD) {
