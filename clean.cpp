@@ -9,6 +9,16 @@
 #include <sys/stat.h>
 #include <windows.h>
 
+#define PARENS ()
+#define EXPAND(...) EXPAND4(EXPAND4(EXPAND4(EXPAND4(__VA_ARGS__))))
+#define EXPAND4(...) EXPAND3(EXPAND3(EXPAND3(EXPAND3(__VA_ARGS__))))
+#define EXPAND3(...) EXPAND2(EXPAND2(EXPAND2(EXPAND2(__VA_ARGS__))))
+#define EXPAND2(...) EXPAND1(EXPAND1(EXPAND1(EXPAND1(__VA_ARGS__))))
+#define EXPAND1(...) __VA_ARGS__
+#define DEB(...) { __VA_OPT__(EXPAND(DEB_HELPER(__VA_ARGS__))) std::cout << std::endl; }
+#define DEB_HELPER(var, ...) std::cout << ">> " << #var << " = " << (var) << " "; __VA_OPT__(DEB_HELPER_2 PARENS (__VA_ARGS__))
+#define DEB_HELPER_2() DEB_HELPER
+
 bool is_letter(char c) {
     return c == '_' || std::isalpha(c);
 }
@@ -231,6 +241,7 @@ private:
                     }
                 } else if (value == "typedef") {
                     def d = get_def();
+                    d.words.insert(d.words.begin(), d.name);
                     d.name = d.words.back();
                     d.words.pop_back();
                     s.typedefs.emplace_back(d);
@@ -273,6 +284,11 @@ private:
                             i += 3;
                             while (i < tokens.size() && !(tokens[i-1].value == "*" && tokens[i].value == "/")) ++i;
                         }
+                    }
+                    else if (value == "using") {
+                        def d = get_def();
+                        s.usings.emplace_back(d);
+                        start = SIZE_MAX;
                     }
                     else if (value == "namespace" || value == "struct" || value == "class" || value == "enum")
                         s.spaces.emplace_back(get_space(value == "enum" ? 3 : 0));
