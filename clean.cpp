@@ -541,17 +541,36 @@ void copy(std::string str) {
     CloseClipboard();
 }
 
+bool is_empty(const std::string& line) {
+    return std::all_of(line.begin(), line.end(), isspace);
+}
+
+bool is_close_bracket(const std::string& line) {
+    auto close_bracket = line.find('}');
+    if (close_bracket == std::string::npos)
+        return false;
+    std::string s = line;
+    s[close_bracket] = ' ';
+    return is_empty(s);
+}
+
 std::string clean(std::vector<std::string>& lines, std::vector<size_t>& unused) {
-    std::string str = "";
+    std::vector<std::string> res;
     size_t j = 0;
     bool was_empty = true;
     for (size_t i = 0; i < lines.size(); ++i) {
         if (j < unused.size() && unused[j] == i) ++j;
-        else if (bool empty = std::all_of(lines[i].begin(), lines[i].end(), isspace); !empty || !was_empty) {
-            str += lines[i] + "\n";
+        else if (bool empty = is_empty(lines[i]); !empty || !was_empty) {
+            res.emplace_back(move(lines[i]));
             was_empty = empty;
         }
     }
+    for (size_t i = 1; i < res.size() - 1; ++i)
+        if (is_close_bracket(res[i - 1]) && is_empty(res[i]) && is_close_bracket(res[i + 1]))
+            res.erase(res.begin() + i);
+    std::string str = "";
+    for (const std::string& line : res)
+        str += line + "\n";
     return str;
 }
 
