@@ -43,6 +43,14 @@
 ##### Использование: `run input.cpp`
 - `input.cpp` – название файла с кодом
 
+Для удобного запуска из **VS Code**: F1 -> Preferences: Open Keyboard Shortcuts (JSON) -> В конец файла дописать:
+`, {
+"key": "f9",
+"command": "workbench.action.terminal.sendSequence",
+"args": { "text": "run \"${file}\"\n" }
+}`
+и добавить папку с репозиторием в системную переменную PATH
+
 ##### Что делает этот скрипт
 - Удаляет исполняемый файл *a.exe*
 - Компилирует файл с кодом *input.cpp*
