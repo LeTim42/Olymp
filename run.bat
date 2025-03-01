@@ -1,5 +1,6 @@
 @echo off
-del a.exe
-g++ %1.cpp -std=c++17 -O3 -fwhole-program -fconcepts -DLOCAL
-clean %1
+del a.exe 2> null
+del null
+g++ %1 -std=c++17 -O2 -fwhole-program -fconcepts -DLOCAL
+include < %1 | clean | clip
 a

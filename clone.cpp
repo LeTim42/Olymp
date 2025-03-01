@@ -1,7 +1,27 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <vector>
 #include <windows.h>
+
+const std::vector<std::string> FILES = {
+    "main.cpp",
+    "olymp/main.hpp",
+    "olymp/other.hpp",
+    "olymp/search.hpp",
+    "olymp/mod.hpp",
+    "olymp/dsu.hpp",
+    "olymp/graph.hpp",
+    "olymp/rnd.hpp",
+    "olymp/geom.hpp",
+    "olymp/strings.hpp",
+    "olymp/bitset.hpp",
+    "olymp/bigint.hpp",
+    "olymp/rational.hpp",
+    "olymp/sparsetable.hpp",
+    "olymp/segtree.hpp",
+    "input.txt"
+};
 
 void copy(std::string from, std::string to) {
     std::ifstream fin(from, std::ifstream::binary);
@@ -33,12 +53,12 @@ int main(int argc, char* argv[]) {
     std::string dir = argv[1];
     CreateDirectory(argv[1], NULL);
     dir += "\\";
+    CreateDirectory((dir + "olymp").c_str(), NULL);
     char e = argv[2][0] + 1;
-    copy("0.cpp", dir + "0.cpp");
-    copy("input.txt", dir + "input.txt");
-    copy("run.bat", dir + "run.bat");
+    for (const std::string& file : FILES)
+        copy(file, dir + file);
     for (char c = 'A'; c < e; ++c)
-        copy("0.cpp", dir + c + ".cpp");
+        copy(FILES[0], dir + c + ".cpp");
     std::cout << std::max(e-'A',0) << " files created" << std::endl;
     return 0;
 }

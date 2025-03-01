@@ -6,8 +6,16 @@
 #include <cctype>
 #include <regex>
 #include <set>
-#include <sys/stat.h>
-#include <windows.h>
+
+#define PARENS ()
+#define EXPAND(...) EXPAND4(EXPAND4(EXPAND4(EXPAND4(__VA_ARGS__))))
+#define EXPAND4(...) EXPAND3(EXPAND3(EXPAND3(EXPAND3(__VA_ARGS__))))
+#define EXPAND3(...) EXPAND2(EXPAND2(EXPAND2(EXPAND2(__VA_ARGS__))))
+#define EXPAND2(...) EXPAND1(EXPAND1(EXPAND1(EXPAND1(__VA_ARGS__))))
+#define EXPAND1(...) __VA_ARGS__
+#define DEB(...) { __VA_OPT__(EXPAND(DEB_HELPER(__VA_ARGS__))) std::cout << std::endl; }
+#define DEB_HELPER(var, ...) std::cout << ">> " << #var << " = " << (var) << " "; __VA_OPT__(DEB_HELPER_2 PARENS (__VA_ARGS__))
+#define DEB_HELPER_2() DEB_HELPER
 
 #define PARENS ()
 #define EXPAND(...) EXPAND4(EXPAND4(EXPAND4(EXPAND4(__VA_ARGS__))))
@@ -508,37 +516,17 @@ public:
     }
 };
 
-std::vector<std::string> read(std::string file) {
-    std::ifstream fin(file);
-    if (!fin) {
-        std::cout << "Failed to open file " << file << std::endl;
-        exit(2);
-    }
-    std::vector<std::string> lines;
-    std::string line;
-    while (std::getline(fin, line))
-        lines.emplace_back(line);
-    fin.close();
-    return lines;
+bool is_empty(const std::string& line) {
+    return std::all_of(line.begin(), line.end(), isspace);
 }
 
-void write(std::string file, std::string str) {
-    std::ofstream fout(file);
-    if (!fout) {
-        std::cout << "Failed to open output file" << std::endl;
-        exit(3);
-    }
-    fout << str;
-    fout.close();
-}
-
-void copy(std::string str) {
-    auto glob = GlobalAlloc(GMEM_FIXED, str.size()+1);
-    memcpy(glob, str.c_str(), str.size()+1);
-    OpenClipboard(GetDesktopWindow());
-    EmptyClipboard();
-    SetClipboardData(CF_TEXT,glob);
-    CloseClipboard();
+bool is_close_bracket(const std::string& line) {
+    auto close_bracket = line.find('}');
+    if (close_bracket == std::string::npos)
+        return false;
+    std::string s = line;
+    s[close_bracket] = ' ';
+    return is_empty(s);
 }
 
 bool is_empty(const std::string& line) {
@@ -575,22 +563,14 @@ std::string clean(std::vector<std::string>& lines, std::vector<size_t>& unused) 
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        std::cout << "No arguments" << std::endl;
-        return 1;
-    }
-    std::string input = argv[1];
-    if (input.find('.') == -1) input += ".cpp";
-    auto lines = read(input);
+    std::vector<std::string> lines;
+    std::string line;
+    while (std::getline(std::cin, line))
+        lines.emplace_back(move(line));
     CppCode code(lines);
     bool log = !strcmp(argv[argc-1], "LOG");
     if (log) code.print();
     auto unused = code.get_unused_code();
-    auto str = clean(lines, unused);
-    if (argc - log == 2) copy(str);
-    else {
-        std::string output = argv[2];
-        if (output.find('.') == -1) output += ".cpp";
-        write(output, str);
-    }
+    auto result = clean(lines, unused);
+    std::cout << result;
 }
