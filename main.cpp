@@ -4,6 +4,11 @@
 #define input_vars 
 #define output int
 
+#ifdef LOCAL
+// #define TEST
+void _test();
+#endif
+
 bl _fastio, _multitest;
 char *_input, *_output;
 
@@ -25,9 +30,6 @@ void _settings() {
 }
 
 void _solve();
-#ifdef LOCAL
-void _test();
-#endif
 
 int main() {
     #ifdef LOCAL
@@ -50,8 +52,6 @@ int main() {
     re 0;
 }
 
-#ifdef LOCAL
-// #define TEST
 #ifdef TEST
 output slow(input_args); // slow but 100% correct solution
 output fast(input_args); // fast but not sure if it's a correct solution
@@ -110,7 +110,6 @@ void _test() {
     cout << _count << " tests passed\n";
     exit(0);
 }
-#endif
 #endif
 
 /// ================ ACTUAL CODE STARTS HERE ================ ///
