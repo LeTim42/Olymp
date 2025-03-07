@@ -1,5 +1,5 @@
-#ifndef OLYMP_HPP
-#define OLYMP_HPP
+#ifndef MAIN_HPP
+#define MAIN_HPP
 #include <iostream>
 #include <sstream>
 #include <cstdio>
