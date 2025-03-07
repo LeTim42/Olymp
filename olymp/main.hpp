@@ -188,6 +188,7 @@ void throw_divide_by_zero_exception() { vi a(2); cout << (a.fr + 1) / a.ba; }
 
 const int iINF = 2000000007;
 const ll INF = 2000000000000000007;
+const db dINF = 1e100;
 const db PI = 3.14159265358979323846;
 
 // returns current time in nanoseconds
