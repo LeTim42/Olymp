@@ -529,19 +529,6 @@ bool is_close_bracket(const std::string& line) {
     return is_empty(s);
 }
 
-bool is_empty(const std::string& line) {
-    return std::all_of(line.begin(), line.end(), isspace);
-}
-
-bool is_close_bracket(const std::string& line) {
-    auto close_bracket = line.find('}');
-    if (close_bracket == std::string::npos)
-        return false;
-    std::string s = line;
-    s[close_bracket] = ' ';
-    return is_empty(s);
-}
-
 std::string clean(std::vector<std::string>& lines, std::vector<size_t>& unused) {
     std::vector<std::string> res;
     size_t j = 0;
