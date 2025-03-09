@@ -72,6 +72,7 @@ const std::string INCLUDE = "#include \"";
 const std::string IFNDEF = "#ifndef ";
 const std::string DEFINE = "#define ";
 const std::string ENDIF = "#endif";
+const std::string PATH = "olymp/";
 
 std::vector<std::string> include_headers(const std::vector<std::string>& lines, std::set<std::string>& included) {
     std::vector<std::string> result;
@@ -84,7 +85,7 @@ std::vector<std::string> include_headers(const std::vector<std::string>& lines, 
             pos += INCLUDE.size();
             if (std::string header = line.substr(pos, line.find('"', pos) - pos); included.find(header) == included.end()) {
                 included.insert(header);
-                std::ifstream fin(header);
+                std::ifstream fin(PATH + header);
                 auto res = include_headers(read(fin), included);
                 result.insert(result.end(), res.begin(), res.end());
             }

@@ -1,4 +1,4 @@
-#include "olymp/main.hpp"
+#include "main.hpp"
 
 #define input_args 
 #define input_vars 
@@ -74,9 +74,9 @@ bl check(const output& ans1, const output& ans2/*, input_args*/) {
 void _test() {
     const uint64_t TEST_TIME_SECONDS = 5;
     const uint64_t TIME_LIMIT_MILLISECONDS = 0;
-    auto _start = other::now();
+    auto _start = now();
     int _count;
-    for (_count = 0; other::now() - _start < 1000000000 * TEST_TIME_SECONDS; ++_count) {
+    for (_count = 0; now() - _start < 1000000000 * TEST_TIME_SECONDS; ++_count) {
         /* generate input */
         output ans1 = slow(input_vars);
         output ans2;

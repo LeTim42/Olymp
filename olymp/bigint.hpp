@@ -1,6 +1,7 @@
 #ifndef BIGINT_HPP
 #define BIGINT_HPP
 #include "main.hpp"
+#include "other.hpp"
 
 #define FFT_MULT
 #ifdef FFT_MULT
