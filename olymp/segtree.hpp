@@ -1,6 +1,6 @@
 #ifndef SEGTREE_HPP
 #define SEGTREE_HPP
-#include "olymp.hpp"
+#include "main.hpp"
 
 // Requirements:
 // for add(i,x) T = T + T must be defined
@@ -51,6 +51,30 @@ public:
             if (i) print(i<<1, tab + "  ");
             print(i<<1|1, tab + "  ");
         }
+    }
+};
+
+#define SegTreeLPAdd(T,a,n) SegTreeLP<STLPAdd<T>, T> a(n, fadd<STLPAdd<T>>, STLPAdd<T>(T(), 0))
+
+// for addition in SegTreeLP: SegTreeLPAdd(ll,st,n)
+template<class T>
+struct STLPAdd {
+    T value;
+    int len;
+
+    STLPAdd() : value(), len(1) {}
+    STLPAdd(const T& value, int len) : value(value), len(len) {}
+
+    operator T() const {
+        re value;
+    }
+
+    STLPAdd operator+(const STLPAdd& other) const {
+        re STLPAdd(value + other.value, len + other.len);
+    }
+
+    STLPAdd operator+(const T& x) const {
+        re STLPAdd(value + x * len, len);
     }
 };
 
@@ -112,6 +136,12 @@ public:
         }
         build(l0);
         build(r0-1);
+    }
+
+    void add(int i, const D& x) {
+        i += n;
+        apply(i, x);
+        build(i);
     }
     
     T get(int l, int r) { //[l; r)
