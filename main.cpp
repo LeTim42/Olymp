@@ -53,6 +53,8 @@ int main() {
 }
 
 #ifdef TEST
+#include "rnd.hpp"
+
 output slow(input_args); // slow but 100% correct solution
 output fast(input_args); // fast but not sure if it's a correct solution
 void out(const output&);
