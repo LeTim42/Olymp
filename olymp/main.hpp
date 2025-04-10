@@ -119,6 +119,7 @@ typedef V<vi> vvi;
 typedef V<vll> vvll;
 typedef V<vb> vvb;
 typedef V<vc> vvc;
+typedef V<vd> vvd;
 typedef V<vs> vvs;
 typedef V<vii> vvii;
 
