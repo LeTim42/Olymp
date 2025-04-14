@@ -9,33 +9,25 @@
 void _test();
 #endif
 
-bl _fastio, _multitest;
-char *_input, *_output;
-
-void _settings() {
-    _fastio = 1;
-    _multitest = 0;
-    #ifdef TEST
-    _test();
-    #endif
-    #ifdef LOCAL
-    static char input_[] = "input.txt";
-    static char output_[] = "";
-    #else
-    static char input_[] = "";
-    static char output_[] = "";
-    #endif
-    _input = input_;
-    _output = output_;
-}
+const bl _fastio = 1;
+const bl _multitest = 0;
+#ifdef LOCAL
+const char* _input = "input.txt";
+const char* _output = "";
+#else
+const char* _input = "";
+const char* _output = "";
+#endif
 
 void _solve();
 
 int main() {
+    #ifdef TEST
+    _test();
+    #endif
     #ifdef LOCAL
     auto start = now();
     #endif
-    _settings();
     if (_fastio) {
         ios::sync_with_stdio(0);
         cin.tie(0); cout.tie(0);
@@ -68,9 +60,15 @@ void copy(str s) {
     CloseClipboard();
 }
 
-bl check(const output& ans1, const output& ans2/*, input_args*/) {
-    /* check if ans2 is a correct answer if one of the correct answers is ans1 */
-    re ans1 == ans2;
+// #define INPUT_ARGS_IN_CHECK
+
+bl check(const output& ans_slow, const output& ans_fast
+    #ifdef INPUT_ARGS_IN_CHECK
+    , input_args
+    #endif
+) {
+    /* check if ans_fast is a correct answer if one of the correct answers is ans_slow */
+    re ans_slow == ans_fast;
 }
 
 void _test() {
@@ -80,8 +78,8 @@ void _test() {
     int _count;
     for (_count = 0; now() - _start < 1000000000 * TEST_TIME_SECONDS; ++_count) {
         /* generate input */
-        output ans1 = slow(input_vars);
-        output ans2;
+        output ans_slow = slow(input_vars);
+        output ans_fast;
         bl _tle = 0;
         if (TIME_LIMIT_MILLISECONDS) {
             promise<output> _p;
@@ -89,10 +87,14 @@ void _test() {
             thread([&]{ _p.set_value(fast(input_vars)); }).detach();
             if (_tle = (_f.wait_for(chrono::milliseconds(TIME_LIMIT_MILLISECONDS)) != future_status::ready))
                 cout << "Time limit exceeded on test " << _count+1 << '\n';
-            else ans2 = _f.get();
-        } else ans2 = fast(input_vars);
+            else ans_fast = _f.get();
+        } else ans_fast = fast(input_vars);
         if (!_tle) {
-            if (check(ans1, ans2/*, input_vars*/)) continue;
+            if (check(ans_slow, ans_fast
+                #ifdef INPUT_ARGS_IN_CHECK
+                , input_vars
+                #endif
+            )) continue;
             cout << "Wrong answer on test " << _count+1 << '\n';
         }
         cout << "\n============ INPUT =============\n";
@@ -103,10 +105,10 @@ void _test() {
         copy(_str);
         cout << _str;
         cout << "\n======== CORRECT ANSWER ========\n";
-        out(ans1);
+        out(ans_slow);
         if (_tle) exit(1);
         cout << "\n========= WRONG ANSWER =========\n";
-        out(ans2);
+        out(ans_fast);
         exit(1);
     }
     cout << _count << " tests passed\n";
