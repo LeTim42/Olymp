@@ -199,7 +199,7 @@ namespace graph {
         for (int i : order) if (!was[i]) {
             component.clear();
             dfs(i);
-            ans.pb(component);
+            ans.pb(move(component));
         }
         re ans;
     }

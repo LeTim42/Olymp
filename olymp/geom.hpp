@@ -44,6 +44,7 @@ namespace geom {
 
         Point() : x(0), y(0) {}
         Point(const F& x, const F& y) : x(x), y(y) {}
+        template<class F1> Point(const Point<F1>& p) : x(p.x), y(p.y) {}
         
         template<class F1> Point<F>& operator=(const Point<F1>& other) { x = other.x; y = other.y; re *this; }
         template<class F1> Point<F>& operator+=(const Point<F1>& other) { x += other.x; y += other.y; re *this; }
@@ -65,9 +66,9 @@ namespace geom {
     FUNC1(operator-, Point<F>& point, make_point(-point.x, -point.y))
     FUNC2(operator+, Point<F1>& lhs, Point<F2>& rhs, make_point(lhs.x + rhs.x, lhs.y + rhs.y))
     FUNC2(operator-, Point<F1>& lhs, Point<F2>& rhs, make_point(lhs.x - rhs.x, lhs.y - rhs.y))
-    FUNC2(operator*, F1& factor, Point<F2>& rhs, make_point(factor * rhs.x, factor * rhs.y))
-    FUNC2(operator*, Point<F1>& lhs, F2& factor, make_point(lhs.x * factor, lhs.y * factor))
-    FUNC2(operator/, Point<F1>& lhs, F2& factor, make_point(lhs.x / factor, lhs.y / factor))
+    FUNC2(operator*, F1& factor, Point<F2>& rhs, make_point(F2(factor) * rhs.x, F2(factor) * rhs.y))
+    FUNC2(operator*, Point<F1>& lhs, F2& factor, make_point(lhs.x * F1(factor), lhs.y * F1(factor)))
+    FUNC2(operator/, Point<F1>& lhs, F2& factor, make_point(lhs.x / F1(factor), lhs.y / F1(factor)))
     FUNC2(operator*, Point<F1>& lhs, Point<F2>& rhs, lhs.x * rhs.x + lhs.y * rhs.y)
     FUNC2(operator^, Point<F1>& lhs, Point<F2>& rhs, lhs.x * rhs.y - lhs.y * rhs.x)
     FUNC2(operator==, Point<F1>& lhs, Point<F2>& rhs, lhs.x == rhs.x && lhs.y == rhs.y)
@@ -116,6 +117,7 @@ namespace geom {
         Line(const F& a, const F& b, const F& c, const LINE_TYPE t) : a(-c/a,0), ab(b,-a), t(t) {}
         Line(const F& ax, const F& ay, const F& bx, const F& by) : a(ax, ay), ab(bx-ax, by-ay), t(LINE) {}
         Line(const F& ax, const F& ay, const F& bx, const F& by, const LINE_TYPE t) : a(ax, ay), ab(bx-ax, by-ay), t(t) {}
+        template<class F1> Line(const Line<F1>& l) : a(l.a), ab(l.ab), t(l.t) {}
 
         template<class F1>
         Line<F>& operator=(const Line<F1>& other) {
@@ -165,7 +167,7 @@ namespace geom {
         if (l.t != LINE && s <= decltype(s)()) re;
         auto s2 = (p - l.b()) * l.ab;
         if (l.t == SEGMENT && s2 >= decltype(s2)()) { res = l.b(); re; }
-        res += l.ab * (F3)s / sqn(l.ab);
+        res += Point<F3>(l.ab) * (F3(s) / sqn(l.ab));
     }
 
     // reflection of point p around line l

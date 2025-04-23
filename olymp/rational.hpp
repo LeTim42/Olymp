@@ -19,6 +19,15 @@ private:
         }
     }
 
+public:
+    Rational() : n(0), d(1) {}
+    template<class T1> Rational(const T1& n) : n(n), d(1) {}
+    template<class T1> Rational(const T1& n, const T1& d) : n(n), d(d) { reduce(); }
+    template<class T1> Rational(const Rational<T1>& other) : n(other.n), d(other.d) {}
+
+    T numerator() const { re n; }
+    T denominator() const { re d; }
+
     str to_str(size_t precision) {
         auto x = n < T() ? -n : n;
         str s = (n < T() ? "-" : "") + str(x/d);
@@ -36,18 +45,9 @@ private:
         re s;
     }
 
-public:
-    Rational() : n(0), d(1) {}
-    Rational(const T& n) : n(n), d(1) {}
-    Rational(const T& n, const T& d) : n(n), d(d) { reduce(); }
-    Rational(const Rational<T>& other) : n(other.n), d(other.d) {}
-
-    T numerator() const { re n; }
-    T denominator() const { re d; }
-
-    operator fl() { re stof(to_str(numeric_limits<fl>::digits10 + 1)); }
-    operator db() { re stod(to_str(numeric_limits<db>::digits10 + 1)); }
-    operator ld() { re stold(to_str(numeric_limits<ld>::digits10 + 1)); }
+    fl to_fl() const { re stof(to_str(numeric_limits<fl>::digits10 + 1)); }
+    db to_db() const { re stod(to_str(numeric_limits<db>::digits10 + 1)); }
+    ld to_ld() const { re stold(to_str(numeric_limits<ld>::digits10 + 1)); }
 
     Rational<T>& operator=(const Rational<T>& other) {
         n = other.n;
