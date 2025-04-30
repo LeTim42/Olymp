@@ -177,6 +177,18 @@ namespace geom {
         res = res * 2 - p;
     }
 
+    template<class F1, class F2>
+    bl circumcenter(const Point<F1>& a, const Point<F1>& b, const Point<F1>& c, Point<F2>& res) {
+        Point<F2> A = Point<F2>(a + b) / 2;
+        Point<F2> B = A + perp(A - a);
+        Point<F2> C = Point<F2>(a + c) / 2;
+        Point<F2> D = C + perp(C - a);
+        F2 denom = (B - A) ^ (D - C);
+        if (denom == F2()) re 0;
+        res = A + (B - A) * (((C - A) ^ (D - C)) / denom);
+        re 1;
+    }
+
     // intersection of lines lhs and rhs
     template<class F1, class F2, class F3>
     bl intersect(const Line<F1>& lhs, const Line<F2>& rhs, Point<F3>& res) {
