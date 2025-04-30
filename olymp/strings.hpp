@@ -4,6 +4,61 @@
 
 // Work with strings
 namespace strings {
+    class AhoCorasick {
+    private:
+        struct state {
+            vi next, go;
+            int link, parent;
+            ch c;
+            bl leaf;
+        };
+    
+        const ch F;
+        const int C;
+
+        int _go(int v, ch c) {
+            if (st[v].go[c] == -1)
+                if (st[v].next[c] != -1)
+                    st[v].go[c] = st[v].next[c];
+                else
+                    st[v].go[c] = v ? _go(link(v), c) : 0;
+            re st[v].go[c];
+        }
+    
+    public:
+        V<state> st;
+
+        AhoCorasick(ch first_char = 'a', ch last_char = 'z') : F(first_char), C(last_char - first_char + 1) {
+            st.assign(1, state{vi(C,-1), vi(C,-1), -1, -1, -1});
+        }
+
+        void add(const str& s) {
+            int v = 0;
+            for (ch c : s) {
+                c -= F;
+                if (st[v].next[c] == -1) {
+                    st[v].next[c] = sz(st);
+                    st.pb(state{vi(C,-1), vi(C,-1), -1, v, c});
+                }
+                v = st[v].next[c];
+            }
+            st[v].leaf = 1;
+        }
+
+        int link(int v) {
+            if (st[v].link == -1)
+                if (!v || !st[v].parent)
+                    st[v].link = 0;
+                else
+                    st[v].link = _go(link(st[v].parent), st[v].c);
+            re st[v].link;
+        }
+
+        int go(int v, ch c) {
+            re _go(v,c-F);
+        }
+    };
+
     class SuffixAutomaton {
     private:
         struct state {
@@ -106,6 +161,14 @@ namespace strings {
             re st[v].next[c-F];
         }
     };
+
+    bl is_palindrome(const str& s) {
+        int n = sz(s);
+        f0r(i,n/2)
+            if (s[i] != s[n-i-1])
+                re 0;
+        re 1;
+    }
     
     // returns prefix-function of string
     // p[i] = k -> max length k < i of prefix of string that is equal to suffix of substring [0; i]
