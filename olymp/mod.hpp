@@ -31,7 +31,7 @@ namespace mod {
 
     // Requirements: a % b == 0, m is a prime number
     int idiv(int a, int b, int m = MOD) {
-        re mul(a,pow(b,m-2));
+        re mul(a,pow(b,m-2,m),m);
     }
 
     int modll(ll a, int m = MOD) {
