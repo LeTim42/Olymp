@@ -4,9 +4,9 @@
 
 template<class T = int>
 class SparseTable {
-private:
     V<V<T>> t;
     function<T(const T&, const T&)> f;
+
 public:
     SparseTable(const V<T>& a, const function<T(const T&, const T&)>& f = fmin<T>) : f(f) {
         int n = sz(a), m = lbit(n);

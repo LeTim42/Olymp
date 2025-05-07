@@ -5,7 +5,6 @@
 // Work with strings
 namespace strings {
     class AhoCorasick {
-    private:
         struct state {
             vi next, go;
             int link, parent;
@@ -60,7 +59,6 @@ namespace strings {
     };
 
     class SuffixAutomaton {
-    private:
         struct state {
             vi next;
             int len, link;
@@ -113,7 +111,6 @@ namespace strings {
     };
     
     class Eertree {
-    private:
         struct state {
             vi next;
             int len, link;

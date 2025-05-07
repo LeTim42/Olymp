@@ -8,14 +8,14 @@
 // if T is complicated then T() must has length 1
 template<class T = int>
 class SegTree {
-private:
     int n;
     V<T> t;
     function<T(const T&, const T&)> f;
     T nil;
+
 public:
     SegTree(int n, const function<T(const T&, const T&)>& f = fadd<T>, const T& nil = T()) : n(n), f(f), nil(nil) {
-        t = V<T>(n<<1);
+        t.resize(n<<1);
     }
     
     void build(const V<T>& a) {
@@ -32,7 +32,7 @@ public:
         set(i, t[i+n] + x);
     }
     
-    T get(int l, int r) { //[l; r)
+    T get(int l, int r) const { //[l; r)
         T resl = nil, resr = nil;
         for (l += n, r += n; l < r; l >>= 1, r >>= 1) {
             if (l&1) resl = f(resl, t[l++]);
@@ -41,7 +41,7 @@ public:
         re f(resl,resr);
     }
     
-    T get(int i) {
+    T get(int i) const {
         re t[i+n];
     }
     
@@ -86,7 +86,6 @@ struct STLPAdd {
 // if T is complicated then T() must has length 1
 template<class T = int, class D = int>
 class SegTreeLP {
-private:
     int n, h;
     V<T> t;
     V<D> d;
@@ -115,11 +114,12 @@ private:
             }
         }
     }
+
 public:
     SegTreeLP(int n, const function<T(const T&, const T&)>& f = fmax<T>, const T& nil = T()) : n(n), f(f), nil(nil) {
-        t = V<T>(n<<1);
+        t.resize(n<<1);
+        d.resize(n);
         h = lbit(n)+1;
-        d = V<D>(n);
     }
     
     void build(const V<D>& a) {

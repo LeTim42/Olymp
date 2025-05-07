@@ -5,7 +5,6 @@
 // Rational number
 template<class T>
 class Rational {
-private:
     T n, d;
 
     void reduce() {

@@ -4,7 +4,6 @@
 
 // Disjoint Set Union
 class DSU {
-private:
     vi p, h;
 public:
     DSU(int n) {

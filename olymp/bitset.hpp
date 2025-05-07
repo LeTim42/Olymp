@@ -4,11 +4,11 @@
 
 // Custom bitset
 class Bitset {
-private:
     size_t n, m;
     unsigned char r;
     ull extra;
     V<ull> a;
+
 public:
     Bitset() : n(0), m(0), r(0), extra(0), a(0) {}
 

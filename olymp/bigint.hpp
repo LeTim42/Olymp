@@ -14,7 +14,6 @@ const uint32_t FFT_MASK = (1 << FFT_LEN) - 1;
 
 // Long arithmetics
 class BigInt {
-private:
     using u = uint32_t;
     using ul = uint64_t;
 
