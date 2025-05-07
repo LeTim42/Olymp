@@ -9,7 +9,7 @@ class SparseTable {
 
 public:
     SparseTable(const V<T>& a, const function<T(const T&, const T&)>& f = fmin<T>) : f(f) {
-        int n = sz(a), m = lbit(n);
+        int n = sz(a), m = n ? lbit(n) : 0;
         t = V<V<T>>(m+1);
         t[0] = a;
         f0r(i,m) {
