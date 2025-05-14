@@ -1,7 +1,7 @@
 #ifndef MOD_HPP
 #define MOD_HPP
 #include "main.hpp"
-#include "other.hpp"
+#include "nums.hpp"
 
 // Modular arithmetic
 namespace mod {
@@ -40,7 +40,7 @@ namespace mod {
 
     int rev(int a, int m = MOD) {
         int x, y;
-        if (other::gcdex(a,m,x,y) != 1)
+        if (nums::gcdex(a,m,x,y) != 1)
             re -1;
         re modll(x,m);
     }
@@ -48,7 +48,7 @@ namespace mod {
     vi log(int a, int b, int m = MOD) {
         int m2 = m;
         m /= __gcd(a,m);
-        int n = other::sqrti(m) + 1;
+        int n = nums::sqrti(m) + 1;
         int an = pow(a,n,m);
         int x = an;
         multimap<int,int> vals;

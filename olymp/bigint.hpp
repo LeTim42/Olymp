@@ -1,7 +1,7 @@
 #ifndef BIGINT_HPP
 #define BIGINT_HPP
 #include "main.hpp"
-#include "other.hpp"
+#include "nums.hpp"
 
 #define FFT_MULT
 #ifdef FFT_MULT
@@ -312,7 +312,7 @@ public:
         f0r(i,sz(other.nums))
             f0r(j,FFT_COUNT)
                 b[FFT_COUNT * i + j] = (other.nums[i] >> (j * FFT_LEN)) & FFT_MASK;
-        auto res = other::mul_fft<ul>(a,b);
+        auto res = nums::mul_fft<ul>(a,b);
         u n = sz(res);
         nums.assign(n,0);
         ul carry = 0;
