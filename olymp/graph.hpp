@@ -139,17 +139,18 @@ namespace graph {
     }
 
     template<class T = int>
-    V<T> dijkstra(const V<V<P<int,T>>>& g, int s, T NIL = iINF) {
+    V<T> dijkstra(const V<V<P<int,T>>>& g, int s, int f = -1, T NIL = iINF) {
         int n = sz(g);
         V<T> d(n, NIL);
         priority_queue<P<T,int>, V<P<T,int>>, greater<>> pq;
-        d[s] = 0;
-        pq.push(mp(0,s));
+        d[s] = T();
+        pq.push(mp(T(),s));
         while (sz(pq)) {
             auto p = pq.top();
             pq.pop();
             int u = p.se;
-            if (p.fi > d[u]) continue;
+            if (u == f) re {d[u]};
+            if (d[u] < p.fi) continue;
             for (auto p : g[u]) {
                 int v = p.fi;
                 T w = p.se;
@@ -159,6 +160,7 @@ namespace graph {
                 }
             }
         }
+        if (f != -1) re {NIL};
         re d;
     }
 
