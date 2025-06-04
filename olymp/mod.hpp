@@ -3,7 +3,6 @@
 #include "main.hpp"
 #include "nums.hpp"
 
-// Modular arithmetic
 namespace mod {
     int MOD = 1000000007;
 
@@ -45,9 +44,10 @@ namespace mod {
         re modll(x,m);
     }
 
+    // a ^ x = b (mod m), a and m are coprime numbers
     vi log(int a, int b, int m = MOD) {
         int m2 = m;
-        m /= __gcd(a,m);
+        m /= gcd(a,m);
         int n = nums::sqrti(m) + 1;
         int an = pow(a,n,m);
         int x = an;
@@ -70,6 +70,44 @@ namespace mod {
         }
         sort(all(ans));
         unq(ans);
+        re ans;
+    }
+
+    int generator(int m) {
+        int phi = m-1;
+        vii fact = nums::prime_factorization(phi);
+        rep(g,2,m+1) {
+            bl ok = 1;
+            for (const pii& p : fact)
+                if (pow(g, phi / p.fi, m) == 1)
+                    brk(ok = 0)
+            if (ok) re g;
+        }
+        re -1;
+    }
+
+    // x ^ k = a (mod m), m is a prime number
+    vi root(int a, int k, int m = MOD, int g = -1) {
+        if (g == -1) g = generator(m);
+        int phi = m-1, sq = nums::sqrti(m) + 1;
+        vii dec(sq);
+        f0r(i,sq)
+            dec[i] = {pow(g, mul((i+1)*sq, k, phi), m), i+1};
+        sort(all(dec));
+        int any_ans = -1;
+        f0r(i,sq) {
+            int my = mul(pow(g, mul(i, k, phi), m), a, m);
+            auto it = lower_bound(all(dec), mp(my, 0));
+            if (it != dec.en && it->fi == my)
+                brk(any_ans = it->se * sq - i)
+        }
+        DEB(a,m,any_ans)
+        if (any_ans == -1) re {0};
+        int delta = phi / gcd(k, phi);
+        vi ans;
+        for (int cur = any_ans % delta; cur < phi; cur += delta)
+            ans.pb(pow(g, cur, m));
+        sort(all(ans));
         re ans;
     }
 
@@ -98,9 +136,9 @@ namespace mod {
     }
 
     const int fft_mod = 998244353;
-    const int root = 15311432;
-    const int root_1 = 469870224; // rev(root, fft_mod)
-    const int root_pw = 1 << 23;
+    const int fft_root = 15311432;
+    const int fft_root_1 = 469870224; // rev(root, fft_mod)
+    const int fft_root_pw = 1 << 23;
 
     void fft(vi& a, bl inv) {
         int n = sz(a);
@@ -113,8 +151,8 @@ namespace mod {
                 swap(a[i], a[j]);
         }
         for (int len = 2; len <= n; len <<= 1) {
-            int wlen = inv ? root_1 : root;
-            for (int i = len; i < root_pw; i <<= 1)
+            int wlen = inv ? fft_root_1 : fft_root;
+            for (int i = len; i < fft_root_pw; i <<= 1)
                 wlen = mul(wlen, wlen, fft_mod);
             for (int i = 0; i < n; i += len) {
                 int w = 1;
