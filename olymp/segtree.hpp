@@ -24,8 +24,8 @@ public:
     }
     
     void set(int i, const T& x) {
-        for (t[i += n] = x; i > 1; i >>= 1)
-            t[i>>1] = f(t[i], t[i^1]);
+        for (t[i += n] = x; i >>= 1;)
+            t[i] = f(t[i<<1], t[i<<1|1]);
     }
     
     void add(int i, const T& x) {
