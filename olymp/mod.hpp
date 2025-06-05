@@ -88,6 +88,7 @@ namespace mod {
 
     // x ^ k = a (mod m), m is a prime number
     vi root(int a, int k, int m = MOD, int g = -1) {
+        if (!a) re {0};
         if (g == -1) g = generator(m);
         int phi = m-1, sq = nums::sqrti(m) + 1;
         vii dec(sq);
@@ -101,7 +102,7 @@ namespace mod {
             if (it != dec.en && it->fi == my)
                 brk(any_ans = it->se * sq - i)
         }
-        if (any_ans == -1) re {0};
+        if (any_ans == -1) re {};
         int delta = phi / gcd(k, phi);
         vi ans;
         for (int cur = any_ans % delta; cur < phi; cur += delta)
