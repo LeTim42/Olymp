@@ -101,7 +101,6 @@ namespace mod {
             if (it != dec.en && it->fi == my)
                 brk(any_ans = it->se * sq - i)
         }
-        DEB(a,m,any_ans)
         if (any_ans == -1) re {0};
         int delta = phi / gcd(k, phi);
         vi ans;
