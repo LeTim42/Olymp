@@ -395,5 +395,69 @@ namespace graph {
         assert(!sz(res));
         re res;
     }
+
+    V<P<vi,vi>> bipartite(const vvi& g) {
+        int n = sz(g);
+        V<P<vi,vi>> res;
+        vc c(n,-1);
+        queue<int> q;
+        f0r(i,n) {
+            if (c[i] != -1) continue;
+            res.pb(P<vi,vi>());
+            c[i] = 0;
+            res.ba.fi.pb(i);
+            q.push(i);
+            while (sz(q)) {
+                int u = q.fr; q.pop();
+                for (int v : g[u]) {
+                    if (c[v] == -1) {
+                        c[v] = !c[u];
+                        (c[v] ? res.ba.se : res.ba.fi).pb(v);
+                        q.push(v);
+                    } else if (c[v] == c[u]) re {};
+                }
+            }
+        }
+        re res;
+    }
+
+    template<class T>
+    P<vvi,int> get_first_part(const vvi& g, const V<T>& c) {
+        int n = sz(g);
+        int m = 0, k = 0;
+        vi id(n);
+        f0r(i,n) id[i] = c[i] ? k++ : m++;
+        vvi res(m);
+        f0r(i,n) {
+            if (!c[i]) {
+                int u = id[i];
+                res[u].reserve(sz(g[i]));
+                for (int j : g[i])
+                    res[u].pb(id[j]);
+            }
+        }
+        re {res, k};
+    }
+
+    vii kuhn(const vvi& g, int k) {
+        int n = sz(g);
+        vi mt(k,-1), was(n,-1);
+        int i;
+        lambda(bl, dfs, int u) {
+            if (was[u] == i) re 0;
+            was[u] = i;
+            for (int v : g[u])
+                if (mt[v] == -1 || dfs(mt[v])) {
+                    mt[v] = u; re 1; }
+            re 0;
+        };
+        for (i = 0; i < n; ++i)
+            dfs(i);
+        vii res;
+        f0r(i,k)
+            if (mt[i] != -1)
+                res.pb(mt[i], i);
+        re res;
+    }
 }
 #endif
