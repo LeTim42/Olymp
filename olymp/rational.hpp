@@ -27,7 +27,7 @@ public:
     T numerator() const { re n; }
     T denominator() const { re d; }
 
-    str to_str(size_t precision) {
+    str to_str(size_t precision) const {
         auto x = n < T() ? -n : n;
         str s = (n < T() ? "-" : "") + str(x/d);
         x = x%d;

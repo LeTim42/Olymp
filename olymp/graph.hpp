@@ -151,9 +151,7 @@ namespace graph {
             int u = p.se;
             if (u == f) re {d[u]};
             if (d[u] < p.fi) continue;
-            for (auto p : g[u]) {
-                int v = p.fi;
-                T w = p.se;
+            for (const auto& [v, w] : g[u]) {
                 if (d[u] + w < d[v]) {
                     d[v] = d[u] + w;
                     pq.push(mp(d[v],v));
