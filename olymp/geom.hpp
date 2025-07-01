@@ -225,6 +225,21 @@ namespace geom {
         #undef lay
     }
 
+    // intersection of two circles with centers at points c0 and c1 and radii r0 and r1 respectively
+    template<class F1, class F2, class F3>
+    V<Point<F1>> intersect(const Point<F2>& c0, const F2& r0, const Point<F3>& c1, const F3& r1) {
+        auto d2 = dist2(c0, c1);
+        if (d2 > sq(r0 + r1) || d2 < sq(r0 - r1) || (d2 == decltype(d2)() && r0 == r1)) re {};
+        F1 d = sqrt(d2);
+        F1 a = (sq(r0) - sq(r1) + d2) / F1(d * 2);
+        Point<F1> m = Point<F1>(c1 - c0) * (a / d) + c0;
+        if (d2 == sq(r0 + r1)) re {m};
+        Point<F1> v = perp(c1 - c0);
+        F1 h = sqrt(sq(r0) - sq(a));
+        v *= h / d;
+        re {m - v, m + v};
+    }
+
     // distance between lines lhs and rhs
     template<class F1, class F2>
     distF<F1,F2> dist(const Line<F1>& lhs, const Line<F2>& rhs) {
