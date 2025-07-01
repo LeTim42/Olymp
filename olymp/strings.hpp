@@ -58,6 +58,84 @@ namespace strings {
         }
     };
 
+    class SuffixArray {
+        int n, m;
+        vvi t;
+        bl store_table;
+
+    public:
+        vi p;
+
+        // add zero-char to the end of string if needed
+        SuffixArray(const str& s, bl store_table = 0) : store_table(store_table) {
+            n = sz(s), m = n ? lbit(n) : 0;
+            p.resize(n);
+            vi cnt(max(n,128));
+            for (ch c : s)
+                ++cnt[c];
+            f0r1(i,128)
+                cnt[i] += cnt[i-1];
+            f0r(i,n)
+                p[--cnt[s[i]]] = i;
+            vi::iterator c, cn;
+            vi _c, _cn;
+            if (store_table) {
+                t.assign(m+1, vi(n));
+                c = t[0].be;
+            } else {
+                _c.resize(n);
+                _cn.resize(n);
+                c = _c.be;
+                cn = _cn.be;
+            }
+            c[p[0]] = 0;
+            int classes = 1;
+            f0r1(i,n)
+                c[p[i]] = (classes += s[p[i]] != s[p[i-1]]) - 1;
+            vi pn(n);
+            f0r(h,m) {
+                if (store_table)
+                    cn = t[h+1].be;
+                f0r(i,n) {
+                    pn[i] = p[i] - (1<<h);
+                    if (pn[i] < 0)
+                        pn[i] += n;
+                }
+                fill(cnt.be, cnt.be + classes, 0);
+                f0r(i,n)
+                    ++cnt[c[pn[i]]];
+                f0r1(i,classes)
+                    cnt[i] += cnt[i-1];
+                f0rr(i,n)
+                    p[--cnt[c[pn[i]]]] = pn[i];
+                cn[p[0]] = 0;
+                classes = 1;
+                f0r1(i,n)
+                    cn[p[i]] = (classes += (c[p[i]] != c[p[i-1]] || c[(p[i] + (1<<h)) % n] != c[(p[i-1] + (1<<h)) % n])) - 1;
+                swap(c, cn);
+            }
+        }
+
+        pii get(int l, int r) { // [l; r)
+            assert(store_table);
+            int i = lbit(r-l);
+            re {t[i][l], t[i][r-(1<<i)]};
+        }
+
+        int lcp(int i, int j) {
+            assert(store_table);
+            int ans = 0;
+            f0rr(k,m+1) {
+                if (t[k][i] == t[k][j]) {
+                    ans += 1 << k;
+                    i += 1 << k;
+                    j += 1 << k;
+                }
+            }
+            re ans;
+        }
+    };
+
     class SuffixAutomaton {
         struct state {
             vi next;
