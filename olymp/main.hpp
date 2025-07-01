@@ -62,6 +62,8 @@
 #define lbit(a) (__lg((a)))
 #define rbit(a) (lbit((a)&-(a)))
 #define lambda(ret,name,args...) const function<ret(args)> name = [&](args) -> ret
+#define if_has_key(m,k) if (auto it = m.lower_bound(k); it != m.en && it->fi == k)
+#define use_else_insert(m,k,v,...) if_has_key(m,k) { __VA_ARGS__; } else m.insert(it, mp(k,v));
 #define opin(class, name) istream& operator>>(istream& in, class& name)
 #define opout(class, name) ostream& operator<<(ostream& out, const class& name)
 #define uid uniform_int_distribution
@@ -175,6 +177,7 @@ struct TAB_HELPER {
 #endif
 
 template<class T = int> T fadd(const T& a, const T& b) { re a+b; }
+template<class T1 = int, class T2 = int> T1 fmul(const T1& a, const T2& b) { re a*b; }
 template<class T = int> T fmin(const T& a, const T& b) { re min(a,b); }
 template<class T = int> T fmax(const T& a, const T& b) { re max(a,b); }
 
