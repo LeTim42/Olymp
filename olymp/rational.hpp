@@ -5,8 +5,6 @@
 // Rational number
 template<class T>
 class Rational {
-    T n, d;
-
     void reduce() {
         if (d == T()) throw_divide_by_zero_exception();
         T g = __gcd<T>(n,d);
@@ -19,13 +17,12 @@ class Rational {
     }
 
 public:
+    T n, d;
+
     Rational() : n(0), d(1) {}
     template<class T1> Rational(const T1& n) : n(n), d(1) {}
     template<class T1> Rational(const T1& n, const T1& d) : n(n), d(d) { reduce(); }
     template<class T1> Rational(const Rational<T1>& other) : n(other.n), d(other.d) {}
-
-    T numerator() const { re n; }
-    T denominator() const { re d; }
 
     str to_str(size_t precision) const {
         auto x = n < T() ? -n : n;
@@ -90,7 +87,7 @@ public:
             re n < T();
         if (n == T())
             re other.n >= T();
-        re (*this + other).n < T();
+        re (*this - other).n < T();
     }
 
     bl operator>(const Rational<T>& other) const { re other < *this; }
