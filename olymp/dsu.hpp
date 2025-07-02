@@ -7,8 +7,8 @@ class DSU {
     vi p, h;
 public:
     DSU(int n) {
-        p = vi(n);
-        h = vi(n);
+        p.resize(n);
+        h.assign(n,0);
         iota(all(p),0);
     }
     
