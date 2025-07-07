@@ -15,6 +15,7 @@ namespace other {
     // sorts and merges intersecting segments
     template<class T = int>
     void merge_segments(V<P<T,T>>& a) {
+        if (!sz(a)) re;
         sort(all(a));
         int i = 0;
         f0r1(j,sz(a))
