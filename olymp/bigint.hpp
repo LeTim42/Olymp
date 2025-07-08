@@ -94,7 +94,7 @@ public:
         re x;
     }
 
-    friend BigInt sqrt(BigInt x) {
+    friend BigInt sqrt(const BigInt& x) {
         BigInt res = x, tmp = (x + BigInt(1)) >> 1;
         while (tmp < res) res = tmp, tmp = (tmp + x / tmp) >> 1;
         re res;
