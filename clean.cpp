@@ -303,7 +303,7 @@ private:
                     else if (value == "(" && !eq && !brackets)
                         s.funcs.emplace_back(get_func());
                     else if (value == "," || value == ";" || value == "=" || value == "[") {
-                        if (!eq && !words_buffer.empty()) {
+                        if (!eq && !words_buffer.empty() && tokens[i-1].value[0] != ']') {
                             vars_buffer.emplace_back(words_buffer.back());
                             words_buffer.pop_back();
                         }
