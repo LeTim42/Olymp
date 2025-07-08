@@ -100,7 +100,7 @@ public:
         re res;
     }
 
-    str naive_base(BigInt x, int base) const {
+    friend str naive_base(BigInt x, int base) {
         str s;
         do {
             auto p = x.divide_with_remainder(10);
@@ -110,7 +110,7 @@ public:
         re s;
     }
 
-    str fast_base(const BigInt& x, int base, int order = -1) const {
+    friend str fast_base(const BigInt& x, int base, int order = -1) {
         if (order == -1) {
             order = 1;
             BigInt b(base);
