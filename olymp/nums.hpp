@@ -8,13 +8,13 @@ namespace nums {
     // returns rounded down square root of x
     template<class T = ll>
     T sqrti(const T& x) {
-        T s = sqrt(x);
-        while (s * s < x) ++s;
-        while (s * s > x) --s;
-        re s;
+        T r = sqrt(x);
+        while (r * r < x) ++r;
+        while (r * r > x) --r;
+        re r;
     }
 
-    // extended euclidean algorithm
+    // extended euclidean algorithm (ax + by = gcd(a,b))
     template<class T = int>
     T gcdex(T a, T b, T& x, T& y) {
         T _a = a, _b = b;
@@ -35,18 +35,32 @@ namespace nums {
 
     void precalc_primes(int max) {
         primes.clear();
-        Bitset sieve(++max);
-        int i;
-        for (i = 2; i*i < max; ++i) {
-            if (!sieve.get(i)) {
-                primes.pb(i);
-                for (int j = i*i; j < max; ++j)
-                    sieve.set(i);
-            }
+        int r = sqrti(max);
+        vii cp;
+        Bitset sieve(r+1);
+        for (int i = 3; i <= r; i += 2) {
+            if (sieve.get(i)) continue;
+            cp.pb(i, (i * i - 1) / 2);
+            for (int j = i*i; j <= r; j += i*2)
+                sieve.set(j);
         }
-        for (; i < max; ++i)
-            if (!sieve.get(i))
-                primes.pb(i);
+        if (max >= 2) primes.pb(2);
+        Bitset block(r);
+        int n = (max - 1) / 2;
+        for (int l = 0; l <= n; l += r) {
+            block.reset();
+            for (pii& pi : cp) {
+                int p = pi.fi;
+                int& i = pi.se;
+                for (; i < r; i += p)
+                    block.set(i);
+                i -= r;
+            }
+            if (!l) block.set(0);
+            for (int i = 0, max = min(r, n-l+1); i < max; ++i)
+                if (!block.get(i))
+                    primes.pb((l + i) * 2 + 1);
+        }
         min_prime = max;
     }
 
@@ -54,13 +68,12 @@ namespace nums {
     V<P<T,int>> prime_factorization(T x) {
         V<P<T,int>> res;
         auto check = [&](const T& d) {
-            if (x % d == 0) {
-                res.pb(d,0);
-                do {
-                    ++res.back().se;
-                    x /= d;
-                } while (x % d == 0);
-            }
+            if (x % d) return;
+            res.pb(d,0);
+            do {
+                ++res.back().se;
+                x /= d;
+            } while (x % d == 0);
         };
         for (int d : primes) {
             if (d*d > x) {
