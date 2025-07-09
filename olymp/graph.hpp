@@ -457,5 +457,47 @@ namespace graph {
                 res.pb(mt[i], i);
         re res;
     }
+
+    template<class T = int>
+    P<T,vi> hungarian(V<V<T>> g, T inf = iINF) {
+        int n = sz(g) + 1, m = sz(g[0]) + 1;
+        g.insert(g.be, V<T>(m));
+        f0r1(i,n) g[i].insert(g[i].be, 0);
+        V<T> u(n), v(m);
+        vi p(m), w(m);
+        f0r1(i,n) {
+            p[0] = i;
+            int j0 = 0;
+            V<T> minv(m,inf);
+            vb used(m);
+            do {
+                used[j0] = 1;
+                int i0 = p[j0], j1;
+                T delta = inf;
+                f0r1(j,m) if (!used[j]) {
+                    T cur = g[i0][j] - u[i0] - v[j];
+                    if (cur < minv[j])
+                        minv[j] = cur, w[j] = j0;
+                    if (minv[j] < delta)
+                        delta = minv[j], j1 = j;
+                }
+                f0r(j,m)
+                    if (used[j])
+                        u[p[j]] += delta, v[j] -= delta;
+                    else
+                        minv[j] -= delta;
+                j0 = j1;
+            } while (p[j0]);
+            do {
+                int j1 = w[j0];
+                p[j0] = p[j1];
+                j0 = j1;
+            } while (j0);
+        }
+        vi res(n-1);
+        f0r1(i,n)
+            res[p[i]-1] = i-1;
+        re {-v[0], res};
+    }
 }
 #endif
