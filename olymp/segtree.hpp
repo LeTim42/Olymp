@@ -5,7 +5,7 @@
 // Requirements:
 // for add(i,x) T = T + T must be defined
 // f(T,nil) == f(nil,T) == T
-// if T is complicated then T() must has length 1
+// if T has length then T() must has length 1
 template<class T = int>
 class SegTree {
     int n;
@@ -79,11 +79,12 @@ struct STLPAdd {
 };
 
 // Requirements:
-// T = T + D must be defined
-// D = D + D must be defined
+// T += D must be defined
+// D += D must be defined
 // T + D() == T
+// bool(D) = D != D()
 // f(T,nil) == f(nil,T) == T
-// if T is complicated then T() must has length 1
+// if T has length then T() must has length 1
 template<class T = int, class D = int>
 class SegTreeLP {
     int n, h;
@@ -93,21 +94,22 @@ class SegTreeLP {
     T nil;
     
     void apply(int i, const D& x) {
-        t[i] = t[i] + x;
-        if (i < n) d[i] = d[i] + x;
+        t[i] += x;
+        if (i < n) d[i] += x;
     }
     
     void build(int i) {
         while (i > 1) {
             i >>= 1;
-            t[i] = f(t[i<<1], t[i<<1|1]) + d[i];
+            t[i] = f(t[i<<1], t[i<<1|1]);
+            t[i] += d[i];
         }
     }
     
     void push(int i) {
         f0rr1(j,h+1) {
             int p = i >> j;
-            if (d[p] != D()) {
+            if (bl(d[p])) {
                 apply(p<<1, d[p]);
                 apply(p<<1|1, d[p]);
                 d[p] = D();
@@ -123,7 +125,7 @@ public:
     }
     
     void build(const V<D>& a) {
-        f0r(i,n) t[i+n] = t[i+n] + a[i];
+        f0r(i,n) t[i+n] += a[i];
         f0rr(i,n) t[i] = f(t[i<<1], t[i<<1|1]);
     }
     
