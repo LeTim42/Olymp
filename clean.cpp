@@ -7,6 +7,7 @@
 #include <regex>
 #include <set>
 
+#ifdef LOCAL
 #define PARENS ()
 #define EXPAND(...) EXPAND4(EXPAND4(EXPAND4(EXPAND4(__VA_ARGS__))))
 #define EXPAND4(...) EXPAND3(EXPAND3(EXPAND3(EXPAND3(__VA_ARGS__))))
@@ -26,6 +27,9 @@
 #define DEB(...) { __VA_OPT__(EXPAND(DEB_HELPER(__VA_ARGS__))) std::cout << std::endl; }
 #define DEB_HELPER(var, ...) std::cout << ">> " << #var << " = " << (var) << " "; __VA_OPT__(DEB_HELPER_2 PARENS (__VA_ARGS__))
 #define DEB_HELPER_2() DEB_HELPER
+#else
+#define DEB(...) ;
+#endif
 
 bool is_letter(char c) {
     return c == '_' || std::isalpha(c);
@@ -149,6 +153,7 @@ private:
         if (!is_letter(f.name[0])) used.insert(f.name);
         start = SIZE_MAX;
         if (f.start == SIZE_MAX) f.start = tokens[i].line;
+        f.words = words_buffer;
         words_buffer.clear();
         vars_buffer.clear();
         ret();
@@ -270,6 +275,8 @@ private:
                                 ++count;
                             else if (tokens[i].value == ">")
                                 --count;
+                            else
+                                words_buffer.emplace_back(tokens[i].value);
                         }
                     }
                     value = tokens[i].value;
