@@ -3,6 +3,24 @@
 #include "main.hpp"
 #include "nums.hpp"
 
+/*
+if BASE_1B defined:
+operator str() - fast
+operators >> << - slow
+FFT_MULT - not available
+other arithmetic operators - slightly slower
+
+if BASE_1B not defined:
+operator str() - slow
+operators >> << - fast
+FFT_MULT - available
+other arithmetic operators - slightly faster
+*/
+// #define BASE_1B
+
+#ifdef BASE_1B
+const uint32_t BASE = 1000000000;
+#else
 #define FFT_MULT
 #ifdef FFT_MULT
 const uint32_t FFT_THRESHOLD = 2800;
@@ -11,13 +29,12 @@ static_assert(32 % FFT_LEN == 0);
 const uint32_t FFT_COUNT = 32 / FFT_LEN;
 const uint32_t FFT_MASK = (1 << FFT_LEN) - 1;
 #endif
+#endif
 
 // Long arithmetics
 class BigInt {
     using u = uint32_t;
     using ul = uint64_t;
-
-    const ul BASE = ul(1) << 32; // DO NOT CHANGE!
 
     void remove_leading_zeros() {
         while (sz(nums) && !nums.ba)
@@ -34,6 +51,14 @@ class BigInt {
         else
             b.resize(sz(a), 0);
     }
+
+    #ifdef BASE_1B
+    template<class T> void div_by_base(T& n) { n /= BASE; }
+    #else
+    void div_by_base(int& n) { n = 0; }
+    void div_by_base(u& n) { n = 0; }
+    template<class T> void div_by_base(T& n) { n >>= 32; }
+    #endif
 
 public:
     V<u> nums;
@@ -71,15 +96,21 @@ public:
             sign = 1;
         while (n != T()) {
             nums.pb(n);
-            n /= BASE;
+            div_by_base(n);
         }
     }
 
     template<class T>
     T to_num() const {
         T res = 0;
-        for (u i : nums)
-            res = res * BASE + i;
+        for (u i : nums) {
+            #ifdef BASE_1B
+            res *= BASE;
+            #else
+            res <<= 32;
+            #endif
+            res += i;
+        }
         res *= sign;
         re res;
     }
@@ -89,7 +120,11 @@ public:
         while (n.sign) {
             if (n.nums[0] % 2) x *= a;
             a *= a;
+            #ifdef BASE_1B
+            n /= 2;
+            #else
             n >>= 1;
+            #endif
         }
         re x;
     }
@@ -103,7 +138,7 @@ public:
     friend str naive_base(BigInt x, int base) {
         str s;
         do {
-            auto p = x.divide_with_remainder(10);
+            auto p = x.divide_with_remainder(base);
             s += (p.se.sign ? p.se.nums[0] : 0) + '0';
             x = p.fi;
         } while (x.sign);
@@ -128,17 +163,35 @@ public:
     operator str() const {
         BigInt n(*this);
         n.sign = abs(n.sign);
+        #ifdef BASE_1B
+        str s = sign == -1 ? "-" : "";
+        s.reserve(sz(nums) * 9 + 1);
+        s += to_string(nums.ba);
+        str t;
+        f0rr(i,sz(nums)-1) {
+            t = to_string(nums[i]);
+            s += str(9-sz(t),'0');
+            s += t;
+        }
+        #else
         str s = fast_base(n, 10);
         while (sz(s) > 1 && s.ba == '0')
             s.pp();
         if (sign == -1)
             s += '-';
         reverse(all(s));
+        #endif
         re s;
     }
 
     BigInt& operator=(const BigInt& other) {
         nums = other.nums;
+        sign = other.sign;
+        re *this;
+    }
+
+    BigInt& operator=(const BigInt&& other) {
+        nums = move(other.nums);
         sign = other.sign;
         re *this;
     }
@@ -178,46 +231,6 @@ public:
         re sz(nums) > 1 || (sign == 1 && nums[0] != x) || (sign == -1 && nums[0] != -ul(x)) || (!sign && x);
     }
 
-    BigInt& operator>>=(size_t shift) {
-        int m = sz(nums);
-        if (!m) re *this;
-        const size_t d = shift/32;
-        if (m < d) {
-            nums.clear();
-            sign = 0;
-            re *this;
-        }
-        const size_t r = shift%32;
-        const size_t l = m-d;
-        if (r) {
-            const size_t s = 32-r;
-            f0r(i,l-1)
-                nums[i] = (nums[i+d] >> r) | (nums[i+d+1] << s);
-            nums[l-1] = nums[m-1] >> r;
-        } else f0r(i,l) nums[i] = nums[i+d];
-        nums.resize(l);
-        remove_leading_zeros();
-        re *this;
-    }
-
-    BigInt& operator<<=(size_t shift) {
-        int m = sz(nums);
-        if (!m) re *this;
-        const size_t d = shift/32;
-        const size_t r = shift%32;
-        m += d+1;
-        nums.resize(m);
-        if (r) {
-            const size_t s = 32-r;
-            repr(i,d+1,m)
-                nums[i] = (nums[i-d] << r) | (nums[i-d-1] >> s);
-            nums[d] = nums[0] << r;
-        } else repr(i,int(d),m) nums[i] = nums[i-d];
-        f0r(i,d) nums[i] = 0;
-        remove_leading_zeros();
-        re *this;
-    }
-
     BigInt operator-() const {
         BigInt res(*this);
         res.sign = -res.sign;
@@ -236,9 +249,15 @@ public:
         bl carry = 0;
         nums.resize(sz(a));
         f0r(i,sz(a)) {
+            #ifdef BASE_1B
+            u sum = a[i] + b[i] + carry;
+            if (carry = sum >= BASE; carry)
+                sum -= BASE;
+            #else
             ul sum = ul(a[i]) + b[i] + carry;
             if (carry = sum > ~u(); carry)
-                sum -= BASE;
+                sum = u(sum);
+            #endif
             nums[i] = sum;
         }
         if (carry)
@@ -275,7 +294,11 @@ public:
         nums.resize(sz(a));
         f0r(i,sz(a)) {
             nums[i] = (a[i] - b[i] - carry);
+            #ifdef BASE_1B
+            carry = a[i] < b[i] + carry;
+            #else
             carry = a[i] < ul(b[i]) + carry;
+            #endif
         }
         remove_leading_zeros();
         re *this;
@@ -293,14 +316,20 @@ public:
             u carry = 0;
             for (int j = 0; j < sz(b) || carry; ++j) {
                 ul mul = nums[i+j] + a[i] * ul(j < sz(b) ? b[j] : 0) + carry;
+                #ifdef BASE_1B
+                nums[i+j] = mul % BASE;
+                carry = mul / BASE;
+                #else
                 nums[i+j] = mul;
                 carry = mul >> 32;
+                #endif
             }
         }
         remove_leading_zeros();
         re *this;
     }
 
+    #ifndef BASE_1B
     #ifdef FFT_MULT
     BigInt& multiply_fft(const BigInt& other) {
         sign *= other.sign;
@@ -326,6 +355,7 @@ public:
         re *this;
     }
     #endif
+    #endif
 
     BigInt& operator*=(const BigInt& other) {
         #ifdef FFT_MULT
@@ -342,25 +372,44 @@ public:
         if (nums == other.nums)
             re mp(BigInt(sign * other.sign), BigInt());
         BigInt r;
-        BigInt base(BASE);
         BigInt b(other);
         b.sign = 1;
-        int i = sz(nums) - 1;
-        while (i >= 0 && r * base + nums[i] < b) {
-            r *= base;
-            r += nums[i--];
+        int i;
+        for (i = sz(nums) - 1; i >= 0; --i) {
+            BigInt t = r;
+            #ifdef BASE_1B
+            t *= BASE;
+            #else
+            t <<= 32;
+            #endif
+            t += nums[i];
+            if (t >= b) break;
+            r = move(t);
         }
         u size = 0;
         BigInt n;
         n.nums.resize(sz(nums));
         for (; i >= 0; --i) {
-            r = r * base + nums[i];
+            #ifdef BASE_1B
+            r *= BASE;
+            #else
+            r <<= 32;
+            #endif
+            r += nums[i];
+            #ifdef BASE_1B
+            u cc = BASE - 1;
+            #else
             u cc = ~u();
+            #endif
             if (r < b * cc) {
                 u max = cc;
                 cc = 0;
                 while (cc < max) {
+                    #ifdef BASE_1B
+                    u x = (cc + max) >> 1;
+                    #else
                     u x = (ul(cc) + max) >> 1;
+                    #endif
                     if (r < b * x) max = x;
                     else cc = x + 1;
                 }
@@ -383,6 +432,54 @@ public:
 
     BigInt& operator%=(const BigInt& other) {
         re *this = divide_with_remainder(other).se;
+    }
+
+    BigInt& operator>>=(size_t shift) {
+        #ifdef BASE_1B
+        *this = divide_with_remainder(pow(BigInt(2), shift)).fi;
+        #else
+        int m = sz(nums);
+        if (!m) re *this;
+        const size_t d = shift/32;
+        if (m < d) {
+            nums.clear();
+            sign = 0;
+            re *this;
+        }
+        const size_t r = shift%32;
+        const size_t l = m-d;
+        if (r) {
+            const size_t s = 32-r;
+            f0r(i,l-1)
+                nums[i] = (nums[i+d] >> r) | (nums[i+d+1] << s);
+            nums[l-1] = nums[m-1] >> r;
+        } else f0r(i,l) nums[i] = nums[i+d];
+        nums.resize(l);
+        remove_leading_zeros();
+        #endif
+        re *this;
+    }
+
+    BigInt& operator<<=(size_t shift) {
+        #ifdef BASE_1B
+        *this *= pow(BigInt(2), shift);
+        #else
+        int m = sz(nums);
+        if (!m) re *this;
+        const size_t d = shift/32;
+        const size_t r = shift%32;
+        m += d+1;
+        nums.resize(m);
+        if (r) {
+            const size_t s = 32-r;
+            repr(i,d+1,m)
+                nums[i] = (nums[i-d] << r) | (nums[i-d-1] >> s);
+            nums[d] = nums[0] << r;
+        } else repr(i,int(d),m) nums[i] = nums[i-d];
+        f0r(i,d) nums[i] = 0;
+        remove_leading_zeros();
+        #endif
+        re *this;
     }
 
     BigInt operator>>(size_t shift) const {
