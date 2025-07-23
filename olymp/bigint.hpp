@@ -3,10 +3,11 @@
 #include "main.hpp"
 #include "nums.hpp"
 
-#define BASE_1B
+// #define BASE_1B
 #ifdef BASE_1B
 const uint32_t BASE = 1000000000;
 #else
+#define FFT_MULT
 #ifdef FFT_MULT
 const uint32_t FFT_THRESHOLD = 2800;
 const uint32_t FFT_LEN = 8;
