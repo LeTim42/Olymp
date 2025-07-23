@@ -3,25 +3,10 @@
 #include "main.hpp"
 #include "nums.hpp"
 
-/*
-if BASE_1B defined:
-operator str() - fast
-operators >> << - slow
-FFT_MULT - not available
-other arithmetic operators - slightly slower
-
-if BASE_1B not defined:
-operator str() - slow
-operators >> << - fast
-FFT_MULT - available
-other arithmetic operators - slightly faster
-*/
-// #define BASE_1B
-
+#define BASE_1B
 #ifdef BASE_1B
 const uint32_t BASE = 1000000000;
 #else
-#define FFT_MULT
 #ifdef FFT_MULT
 const uint32_t FFT_THRESHOLD = 2800;
 const uint32_t FFT_LEN = 8;
@@ -30,6 +15,18 @@ const uint32_t FFT_COUNT = 32 / FFT_LEN;
 const uint32_t FFT_MASK = (1 << FFT_LEN) - 1;
 #endif
 #endif
+
+// if BASE_1B defined:
+// operator str() - fast
+// operators >> << - slow
+// FFT_MULT - not available
+// other arithmetic operators - slightly slower
+// 
+// if BASE_1B not defined:
+// operator str() - slow
+// operators >> << - fast
+// FFT_MULT - available
+// other arithmetic operators - slightly faster
 
 // Long arithmetics
 class BigInt {
@@ -70,6 +67,7 @@ public:
     BigInt(ll n) { set_num(n); }
     BigInt(ul n) { set_num(n); }
     BigInt(const BigInt& other) : sign(other.sign) { nums = other.nums; }
+    BigInt(const BigInt&& other) : sign(other.sign) { nums = move(other.nums); }
     BigInt(const str& s) : nums(), sign(0) {
         ch sign = 1;
         for (char c : s) {
@@ -161,6 +159,7 @@ public:
     }
 
     operator str() const {
+        if (!sign) re "0";
         BigInt n(*this);
         n.sign = abs(n.sign);
         #ifdef BASE_1B
@@ -293,10 +292,16 @@ public:
         bl carry = 0;
         nums.resize(sz(a));
         f0r(i,sz(a)) {
-            nums[i] = (a[i] - b[i] - carry);
             #ifdef BASE_1B
-            carry = a[i] < b[i] + carry;
+            if (a[i] < b[i] + carry) {
+                nums[i] = a[i] + BASE - b[i] - carry;
+                carry = 1;
+            } else {
+                nums[i] = a[i] - b[i] - carry;
+                carry = 0;
+            }
             #else
+            nums[i] = (a[i] - b[i] - carry);
             carry = a[i] < ul(b[i]) + carry;
             #endif
         }
@@ -377,12 +382,9 @@ public:
         int i;
         for (i = sz(nums) - 1; i >= 0; --i) {
             BigInt t = r;
-            #ifdef BASE_1B
-            t *= BASE;
-            #else
-            t <<= 32;
-            #endif
-            t += nums[i];
+            t.nums.insert(t.nums.be, nums[i]);
+            t.sign = 1;
+            t.remove_leading_zeros();
             if (t >= b) break;
             r = move(t);
         }
@@ -390,12 +392,9 @@ public:
         BigInt n;
         n.nums.resize(sz(nums));
         for (; i >= 0; --i) {
-            #ifdef BASE_1B
-            r *= BASE;
-            #else
-            r <<= 32;
-            #endif
-            r += nums[i];
+            r.nums.insert(r.nums.be, nums[i]);
+            r.sign = 1;
+            r.remove_leading_zeros();
             #ifdef BASE_1B
             u cc = BASE - 1;
             #else
@@ -405,11 +404,7 @@ public:
                 u max = cc;
                 cc = 0;
                 while (cc < max) {
-                    #ifdef BASE_1B
-                    u x = (cc + max) >> 1;
-                    #else
                     u x = (ul(cc) + max) >> 1;
-                    #endif
                     if (r < b * x) max = x;
                     else cc = x + 1;
                 }
