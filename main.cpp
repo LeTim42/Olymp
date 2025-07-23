@@ -137,6 +137,7 @@ output fast(input_args) {
 }
 
 void _solve() {
+    /* get input */
     auto ans = fast(input_vars);
     out(ans);
 }
