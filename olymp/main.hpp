@@ -1,15 +1,17 @@
 #ifndef MAIN_HPP
 #define MAIN_HPP
 #include <iostream>
+#include <algorithm>
+#include <iomanip>
+#include <functional>
+#include <chrono>
+#include <random>
 #include <set>
+#include <map>
 #include <queue>
 #include <stack>
-#include <iomanip>
-#include <cassert>
-#include <random>
 #include <complex>
-#include <chrono>
-#include <ext/pb_ds/assoc_container.hpp>
+#include <cassert>
 #ifdef LOCAL
 #include <windows.h>
 #endif
@@ -67,7 +69,6 @@
 #define COMMA ,
 
 using namespace std;
-template<class T> using oset = __gnu_pbds::tree<T, __gnu_pbds::null_type, less<T>, __gnu_pbds::rb_tree_tag, __gnu_pbds::tree_order_statistics_node_update>;
 
 typedef long long ll;
 typedef unsigned long long ull;
