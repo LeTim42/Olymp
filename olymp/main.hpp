@@ -1,31 +1,16 @@
 #ifndef MAIN_HPP
 #define MAIN_HPP
 #include <iostream>
-#include <sstream>
-#include <cstdio>
-#include <vector>
-#include <algorithm>
-#include <numeric>
 #include <set>
-#include <map>
-#include <unordered_set>
-#include <unordered_map>
 #include <queue>
 #include <stack>
 #include <iomanip>
-#include <functional>
-#include <chrono>
-#include <cmath>
-#include <cstring>
 #include <cassert>
-#include <climits>
-#include <ctime>
 #include <random>
 #include <complex>
+#include <chrono>
 #include <ext/pb_ds/assoc_container.hpp>
 #ifdef LOCAL
-#include <thread>
-#include <future>
 #include <windows.h>
 #endif
 
