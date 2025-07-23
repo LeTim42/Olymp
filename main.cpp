@@ -45,6 +45,8 @@ int main() {
 }
 
 #ifdef TEST
+#include <thread>
+#include <future>
 #include "rnd.hpp"
 
 output slow(input_args); // slow but 100% correct solution
@@ -135,7 +137,6 @@ output fast(input_args) {
 }
 
 void _solve() {
-    /* get input */
     auto ans = fast(input_vars);
     out(ans);
 }
