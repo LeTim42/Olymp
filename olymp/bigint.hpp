@@ -3,6 +3,7 @@
 #include "main.hpp"
 #include "nums.hpp"
 
+#define DONT_CLEAN
 // #define BASE_1B
 #ifdef BASE_1B
 const uint32_t BASE = 1000000000;
@@ -16,6 +17,7 @@ const uint32_t FFT_COUNT = 32 / FFT_LEN;
 const uint32_t FFT_MASK = (1 << FFT_LEN) - 1;
 #endif
 #endif
+#undef DONT_CLEAN
 
 // if BASE_1B defined:
 // operator str() - fast
@@ -50,6 +52,7 @@ class BigInt {
             b.resize(sz(a), 0);
     }
 
+    #define DONT_CLEAN
     #ifdef BASE_1B
     template<class T> void div_by_base(T& n) { n /= BASE; }
     #else
@@ -57,6 +60,7 @@ class BigInt {
     void div_by_base(u& n) { n = 0; }
     template<class T> void div_by_base(T& n) { n >>= 32; }
     #endif
+    #undef DONT_CLEAN
 
 public:
     V<u> nums;
@@ -134,17 +138,17 @@ public:
         re res;
     }
 
-    friend str naive_base(BigInt x, int base) {
+    friend str naive_base(BigInt x, int base, ch first = '0') {
         str s;
         do {
             auto p = x.divide_with_remainder(base);
-            s += (p.se.sign ? p.se.nums[0] : 0) + '0';
+            s += (p.se.sign ? p.se.nums[0] : 0) + first;
             x = p.fi;
         } while (x.sign);
         re s;
     }
 
-    friend str fast_base(const BigInt& x, int base, int order = -1) {
+    friend str fast_base(const BigInt& x, int base, ch first = '0', int order = -1) {
         if (order == -1) {
             order = 1;
             BigInt b(base);
@@ -153,10 +157,10 @@ public:
                 order *= 2;
             }
         }
-        if (!order) re naive_base(x, base);
+        if (!order) re naive_base(x, base, first);
         BigInt sep = pow(BigInt(base), order);
         auto p = x.divide_with_remainder(sep);
-        re fast_base(p.se, base, order / 2) + fast_base(p.fi, base, order / 2);
+        re fast_base(p.se, base, first, order / 2) + fast_base(p.fi, base, first, order / 2);
     }
 
     operator str() const {
