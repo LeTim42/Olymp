@@ -2,11 +2,16 @@
 #define RATIONAL_HPP
 #include "main.hpp"
 
+#define DONT_CLEAN
+#define REDUCE
+#undef DONT_CLEAN
+
 // Rational number
 template<class T>
 class Rational {
     void reduce() {
         if (d == T()) throw_divide_by_zero_exception();
+        #ifdef REDUCE
         T g = __gcd<T>(n,d);
         n /= g;
         d /= g;
@@ -14,6 +19,7 @@ class Rational {
             n = -n;
             d = -d;
         }
+        #endif
     }
 
 public:
