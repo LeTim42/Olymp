@@ -123,11 +123,7 @@ public:
         while (n.sign) {
             if (n.nums[0] % 2) x *= a;
             a *= a;
-            #ifdef BASE_1B
             n /= 2;
-            #else
-            n >>= 1;
-            #endif
         }
         re x;
     }
