@@ -53,7 +53,7 @@ namespace other {
             if (where[i] != -1)
                 ans[i] = a[where[i]][m] / a[where[i]][i];
         f0r(i,n) {
-            T sum();
+            T sum{};
             f0r(j,m)
                 sum += ans[j] * a[i][j];
             if (abs(sum - a[i][m]) > EPS)
