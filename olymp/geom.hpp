@@ -146,16 +146,23 @@ namespace geom {
     }
 
     template<class F1, class F2> using distF = decltype(sqrt(F1() + F2()));
+    template<class F1, class F2> using distS = decltype(F1() + F2());
+
+    // square distance between point p and line l
+    template<class F1, class F2, class F3>
+    distS<F1,F2> dist2(const Point<F1>& p, const Line<F2>& l) {
+        if (l.ab == Point<F2>()) re dist2(p, l.a);
+        auto s = (p - l.a) * l.ab;
+        if (l.t != LINE && s <= decltype(s)()) re dist2(p, l.a);
+        auto s2 = (p - l.b()) * l.ab;
+        if (l.t == SEGMENT && s2 >= decltype(s2)()) re dist2(p, l.b());
+        re sq((p - l.a) ^ l.ab) / sqn(l.ab);
+    }
 
     // distance between point p and line l
     template<class F1, class F2>
     distF<F1,F2> dist(const Point<F1>& p, const Line<F2>& l) {
-        if (l.ab == Point<F2>()) re dist(p, l.a);
-        auto s = (p - l.a) * l.ab;
-        if (l.t != LINE && s <= decltype(s)()) re dist(p, l.a);
-        auto s2 = (p - l.b()) * l.ab;
-        if (l.t == SEGMENT && s2 >= decltype(s2)()) re dist(p, l.b());
-        re abs((p - l.a) ^ l.ab) / norm(l.ab);
+        re sqrt(dist2(p, l));
     }
 
     // projection of point p to line l
@@ -240,17 +247,23 @@ namespace geom {
         re {m - v, m + v};
     }
 
+    // square distance between lines lhs and rhs
+    template<class F1, class F2>
+    distS<F1,F2> dist2(const Line<F1>& lhs, const Line<F2>& rhs) {
+        if (lhs.ab == Point<F1>()) re dist2(lhs.a, rhs);
+        if (rhs.ab == Point<F2>()) re dist2(rhs.a, lhs);
+        Point<distS<F1,F2>> p;
+        if (intersect(lhs, rhs, p)) re distS<F1,F2>();
+        distS<F1,F2> d = min(dist2(lhs.a, rhs), dist2(rhs.a, lhs));
+        if (lhs.t == SEGMENT) amin(d, dist2(lhs.b(), rhs));
+        if (rhs.t == SEGMENT) amin(d, dist2(rhs.b(), lhs));
+        re d;
+    }
+
     // distance between lines lhs and rhs
     template<class F1, class F2>
     distF<F1,F2> dist(const Line<F1>& lhs, const Line<F2>& rhs) {
-        if (lhs.ab == Point<F1>()) re dist(lhs.a, rhs);
-        if (rhs.ab == Point<F2>()) re dist(rhs.a, lhs);
-        Point<distF<F1,F2>> p;
-        if (intersect(lhs, rhs, p)) re 0;
-        distF<F1,F2> d = min(dist(lhs.a, rhs), dist(rhs.a, lhs));
-        if (lhs.t == SEGMENT) amin(d, dist(lhs.b(), rhs));
-        if (rhs.t == SEGMENT) amin(d, dist(rhs.b(), lhs));
-        re d;
+        re sqrt(dist2(lhs, rhs));
     }
 
     template<class F>
