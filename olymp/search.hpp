@@ -49,7 +49,7 @@ namespace search {
         }
         T x = l;
         R y = f(l);
-        rep(x2,l+1,r)
+        rep(x2,l+1,r+1)
             if (R y2 = f(x2); cmp(y2,y))
                 x = x2, y = y2;
         re x;
