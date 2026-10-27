@@ -27,6 +27,34 @@ namespace other {
         a.resize(i+1);
     }
 
+    // longest increasing subsequence
+    template<class T = int>
+    V<T> lis(const V<T>& a, const T& inf = iINF) {
+        int n = sz(a);
+        int len = 0;
+        V<T> d(n+1, inf);
+        vi pos(n+1, -1);
+        vi prev(n);
+        d[0] = -inf;
+        f0r(i,n) {
+            int j = lower_bound(all(d), ids[i]) - d.be;
+            if (d[j-1] < a[i] && a[i] < d[j]) {
+                d[j] = a[i];
+                pos[j] = i;
+                prev[i] = pos[j-1];
+                amax(len, j);
+            }
+        }
+        int p = pos[len];
+        vi ans;
+        ans.reserve(len);
+        while (p != -1) {
+            ans.pb(a[p]);
+            p = prev[p];
+        }
+        re ans;
+    }
+
     // solves system of linear equations and returns number of solutions
     template<class T = db>
     int gauss(V<V<T>> a, V<T>& ans, const T& EPS = 1e-8) {
