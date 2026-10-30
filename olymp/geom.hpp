@@ -149,7 +149,7 @@ namespace geom {
     template<class F1, class F2> using distS = decltype(F1() + F2());
 
     // square distance between point p and line l
-    template<class F1, class F2, class F3>
+    template<class F1, class F2>
     distS<F1,F2> dist2(const Point<F1>& p, const Line<F2>& l) {
         if (l.ab == Point<F2>()) re dist2(p, l.a);
         auto s = (p - l.a) * l.ab;
